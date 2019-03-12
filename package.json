@@ -1,0 +1,220 @@
+{
+    "name": "aadb2c",
+    "displayName": "Azure AD B2C",
+    "description": "Azure AD B2C custom policy extension",
+    "version": "1.2.67",
+    "publisher": "AzureADB2CTools",
+    "engines": {
+        "vscode": "^1.30.0"
+    },
+    "categories": [
+        "Other"
+    ],
+    "icon": "media/icon128.png",
+    "galleryBanner": {
+        "color": "#5c2d91",
+        "theme": "dark"
+    },
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/azure-ad-b2c/vscode-extension.git"
+    },
+    "activationEvents": [
+        "*",
+        "onCommand:extension.insertTechnicalProfileIdp",
+        "onCommand:extension.insertTechnicalProfileRESTAPI",
+        "onCommand:extension.insertClaimType"
+    ],
+    "main": "./out/extension",
+    "contributes": {
+        "commands": [
+            {
+                "command": "extension.insertTechnicalProfileIdp",
+                "title": "B2C Add Identity provider technical profile"
+            },
+            {
+                "command": "extension.insertTechnicalProfileRESTAPI",
+                "title": "B2C Add REST API technical profile"
+            },
+            {
+                "command": "extension.insertClaimType",
+                "title": "B2C Add Claim Type"
+            },
+            {
+                "command": "extension.policy.build",
+                "title": "B2C Policy build"
+            },
+            {
+                "command": "extension.policy.smartCopy",
+                "title": "B2C Smart copy"
+            },
+            {
+                "command": "extension.policy.smartPaste",
+                "title": "B2C Smart paste"
+            },
+            {
+                "command": "ApplicationInsightsExplorer.refresh",
+                "title": "Refresh",
+                "icon": {
+                    "light": "resources/light/refresh.svg",
+                    "dark": "resources/dark/refresh.svg"
+                }
+            },
+            {
+                "command": "ApplicationInsightsExplorer.settings",
+                "title": "Settings",
+                "icon": {
+                    "light": "resources/light/settings.svg",
+                    "dark": "resources/dark/settings.svg"
+                }
+            },
+            {
+                "command": "ApplicationInsightsExplorer.add",
+                "title": "B2C Add Application Insights to a relying party policy",
+                "icon": {
+                    "light": "resources/light/add.svg",
+                    "dark": "resources/dark/add.svg"
+                }
+            }
+        ],
+        "keybindings": [
+            {
+                "command": "extension.insertTechnicalProfileIdp",
+                "key": "shift+ctrl+1",
+                "mac": "shift+cmd+1",
+                "when": "editorTextFocus"
+            },
+            {
+                "command": "extension.insertTechnicalProfileRESTAPI",
+                "key": "shift+ctrl+2",
+                "mac": "shift+cmd+2",
+                "when": "editorTextFocus"
+            },
+            {
+                "command": "extension.insertClaimType",
+                "key": "shift+ctrl+3",
+                "mac": "shift+cmd+3",
+                "when": "editorTextFocus"
+            },
+            {
+                "command": "ApplicationInsightsExplorer.add",
+                "key": "shift+ctrl+4",
+                "mac": "shift+cmd+4",
+                "when": "editorTextFocus"
+            },
+            {
+                "command": "extension.policy.build",
+                "key": "shift+ctrl+5",
+                "mac": "shift+cmd+5",
+                "when": "editorTextFocus"
+            },
+            {
+                "command": "extension.policy.smartCopy",
+                "key": "shift+ctrl+c",
+                "mac": "shift+cmd+c",
+                "when": "editorTextFocus"
+            },
+            {
+                "command": "extension.policy.smartPaste",
+                "key": "shift+ctrl+v",
+                "mac": "shift+cmd+v",
+                "when": "editorTextFocus"
+            }
+        ],
+        "snippets": [
+            {
+                "language": "xml",
+                "path": "./snippets/snippets.json"
+            }
+        ],
+        "views": {
+            "explorer": [
+                {
+                    "id": "CustomPolicyExplorer",
+                    "name": "Azure AD B2C Policy Explorer",
+                    "when": "CustomPolicyExplorerEnabled"
+                },
+                {
+                    "id": "ApplicationInsightsExplorer",
+                    "name": "Azure AD B2C Trace (app insights)",
+                    "when": "CustomPolicyExplorerEnabled"
+                }
+            ]
+        },
+        "menus": {
+            "view/title": [
+                {
+                    "command": "ApplicationInsightsExplorer.settings",
+                    "when": "view == ApplicationInsightsExplorer",
+                    "group": "navigation"
+                },
+                {
+                    "command": "ApplicationInsightsExplorer.refresh",
+                    "when": "view == ApplicationInsightsExplorer",
+                    "group": "navigation"
+                },
+                {
+                    "command": "ApplicationInsightsExplorer.add",
+                    "when": "view == ApplicationInsightsExplorer",
+                    "group": "navigation"
+                }
+            ],
+            "editor/context": [
+                {
+                    "command": "extension.policy.smartCopy",
+                    "group": "MyGroup@1",
+                    "when": "editorTextFocus"
+                },
+                {
+                    "command": "extension.policy.smartPaste",
+                    "group": "MyGroup@2",
+                    "when": "editorTextFocus"
+                }
+            ]
+        },
+        "configuration": {
+            "type": "object",
+            "title": "Azure AD B2C Application Insights",
+            "properties": {
+                "aadb2c.ai.id": {
+                    "type": [
+                        "string"
+                    ],
+                    "default": "",
+                    "description": "Your Application Insights ID"
+                },
+                "aadb2c.ai.key": {
+                    "type": [
+                        "string"
+                    ],
+                    "default": "",
+                    "description": "Your Application Insights Key"
+                },
+                "aadb2c.ai.maxRows": {
+                    "type": "integer",
+                    "default": 30,
+                    "description": "The number of events to return"
+                }
+            }
+        }
+    },
+    "scripts": {
+        "vscode:prepublish": "npm run compile",
+        "compile": "tsc -p ./",
+        "watch": "tsc -watch -p ./",
+        "postinstall": "node ./node_modules/vscode/bin/install",
+        "test": "npm run compile && node ./node_modules/vscode/bin/test"
+    },
+    "devDependencies": {
+        "typescript": "^3.2.2",
+        "@types/node": "^10.12.18",
+        "@types/mocha": "^5.2.5"
+    },
+    "dependencies": {
+        "clipboardy": "^1.2.3",
+        "request": "^2.88.0",
+        "vscode": "^1.1.26",
+        "xmldom": "^0.1.27",
+        "xpath": "0.0.27"
+    }
+}
