@@ -84,6 +84,7 @@ export default class CustomPolicyExplorerProvider implements vscode.TreeDataProv
 			keys.push("root|ClaimType|Claim Types|" + this.getElementByTagName("ClaimsSchema"));
 			keys.push("root|ClaimsTransformation|Claims Transformations|" + this.getElementByTagName("ClaimsTransformations"));
 			keys.push("root|ContentDefinition|Content Definitions|" + this.getElementByTagName("ContentDefinitions"));
+			keys.push("root|Predicate|Predicates|" + this.getElementByTagName("Predicates"));
 		}
 		else {
 			const elementValues: String[] = parentElementKey.split("|");
