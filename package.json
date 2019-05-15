@@ -75,6 +75,10 @@
                     "light": "resources/light/add.svg",
                     "dark": "resources/dark/add.svg"
                 }
+            },
+            {
+                "command": "extension.policy.upload",
+                "title": "B2C Policy Upload"
             }
         ],
         "keybindings": [
@@ -118,6 +122,13 @@
                 "command": "extension.policy.smartPaste",
                 "key": "shift+ctrl+v",
                 "mac": "shift+cmd+v",
+                "when": "editorTextFocus"
+            },
+            {
+                "command": "extension.policy.upload",
+                "key": "shift+ctrl+u",
+                "mac": "shift+cmd+u",
+                "title": "B2C Policy Upload",
                 "when": "editorTextFocus"
             }
         ],
@@ -194,6 +205,11 @@
                     "type": "integer",
                     "default": 30,
                     "description": "The number of events to return"
+                },
+                "aadb2c.graph.clientid": {
+                    "type": "string",
+                    "default": "",
+                    "description": "The B2C Upload ApplicationID"
                 }
             }
         }
@@ -211,9 +227,11 @@
         "@types/mocha": "^5.2.5"
     },
     "dependencies": {
+        "adal-node": "^0.1.28",
         "clipboardy": "^1.2.3",
+        "copy-paste": "^1.3.0",
         "request": "^2.88.0",
-        "vscode": "^1.1.26",
+        "vscode": "^1.1.34",
         "xmldom": "^0.1.27",
         "xpath": "0.0.27"
     }
