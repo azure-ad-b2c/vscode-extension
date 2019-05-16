@@ -208,7 +208,7 @@ export class ReferenceProvider implements vscode.ReferenceProvider {
 
         var elements = doc.getElementsByTagName(elementTagName);
 
-        var i: number;
+        var i: number; 
         for (i = 0; i < elements.length; i++) {
 
             const element = elements[i];
