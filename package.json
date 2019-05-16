@@ -185,7 +185,7 @@
         },
         "configuration": {
             "type": "object",
-            "title": "Azure AD B2C Application Insights",
+            "title": "Azure AD B2C",
             "properties": {
                 "aadb2c.ai.id": {
                     "type": [
