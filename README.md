@@ -9,8 +9,8 @@ To start working with your custom policy. Open you Visual Studio Code, and open 
 
 # Azure AD B2C Custom policy Features
 
-## Policy uplaod
-You can now upload your policy directly from VS Code. Read more [here](https://github.com/azure-ad-b2c/vscode-extension/blob/master/src/help/policy-upload.md) 
+## Policy upload
+You can now [upload your policy directly from VS Code](https://github.com/azure-ad-b2c/vscode-extension/blob/master/src/help/policy-upload.md). 
 
 ## Autocomplete 
 With autocomplete feature, you can save your time customizing a B2C policy. B2C extension provides you the list of policy settings, claims, technical profiles, and claims transformation aggregated from your policy files. Select one of the following attributes and click **ctrl+space** (cmd+space), or start:
