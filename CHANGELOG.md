@@ -1,7 +1,7 @@
 # Change Log
 
 ## May 2019
-- Policy upload
+- [Policy upload](https://github.com/azure-ad-b2c/vscode-extension/blob/master/src/help/policy-upload.md) 
 
 ## January 2019
 - Adding Smart copy and pasted feature
