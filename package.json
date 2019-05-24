@@ -185,11 +185,7 @@
         },
         "configuration": {
             "type": "object",
-<<<<<<< HEAD
             "title": "Azure AD B2C Settings",
-=======
-            "title": "Azure AD B2C",
->>>>>>> 279bbe371e799f1436e18232098a79e49f9bc6f1
             "properties": {
                 "aadb2c.ai.id": {
                     "type": [
