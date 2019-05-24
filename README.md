@@ -10,7 +10,7 @@ To start working with your custom policy. Open you Visual Studio Code, and open 
 # Azure AD B2C Custom policy Features
 
 ## Policy uplaod
-You can now upload your policy directly from VS Code. Read more [here](https://github.com/yoelhor/aad-b2c-vs-code-extension/blob/master/src/help/policy-upload.md) 
+You can now upload your policy directly from VS Code. Read more [here](https://github.com/azure-ad-b2c/vscode-extension/blob/master/src/help/policy-upload.md) 
 
 ## Autocomplete 
 With autocomplete feature, you can save your time customizing a B2C policy. B2C extension provides you the list of policy settings, claims, technical profiles, and claims transformation aggregated from your policy files. Select one of the following attributes and click **ctrl+space** (cmd+space), or start:
@@ -75,7 +75,7 @@ Move your mouse over any XML tag name, to see the description
 ![XML Schema quick help](media/hover.gif)
 
 ## Application Insights
-Collect logs from Azure AD B2C and diagnose problems with your Azure AD B2C vocode extension. Read more [here](https://github.com/yoelhor/aad-b2c-vs-code-extension/blob/master/src/help/app-insights.md). The logs are organized by the **policy name**, **correlation Id** (the application insights presents the first digit of the correlation Id), and the **log timestamp**. This allows you to find the relevant log based on the local timestamp and see the user journey as executed by Azure AD B2C.
+Collect logs from Azure AD B2C and diagnose problems with your Azure AD B2C vocode extension. Read more [here](https://github.com/azure-ad-b2c/vscode-extension/blob/master/src/help/app-insights.md). The logs are organized by the **policy name**, **correlation Id** (the application insights presents the first digit of the correlation Id), and the **log timestamp**. This allows you to find the relevant log based on the local timestamp and see the user journey as executed by Azure AD B2C.
 
 ![Application Insights](media/ai.png)
 
