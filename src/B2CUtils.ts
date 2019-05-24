@@ -56,6 +56,8 @@ export default class B2CUtils {
                     if (err) {
                         console.log('error happens when acquiring token with device code');
                         console.log(err);
+
+                        vscode.window.showErrorMessage('An error happens when acquiring token with device code');
                     }
                     else {
                         B2CUtils.uploadpolicy( tokenResponse as adal.TokenResponse,PolicyInfo.PolicyId);
