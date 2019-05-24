@@ -1,5 +1,8 @@
 # Change Log
 
+## May 2019
+- Policy upload
+
 ## January 2019
 - Adding Smart copy and pasted feature
 - Fixing the 'add claim type' to include the claim type element's parents 
