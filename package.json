@@ -2,7 +2,7 @@
     "name": "aadb2c",
     "displayName": "Azure AD B2C",
     "description": "Azure AD B2C custom policy extension",
-    "version": "1.2.68",
+    "version": "1.2.69",
     "publisher": "AzureADB2CTools",
     "engines": {
         "vscode": "^1.30.0"
