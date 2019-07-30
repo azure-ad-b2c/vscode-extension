@@ -96,8 +96,11 @@ export function activate(context: vscode.ExtensionContext) {
     // Smart paste
     context.subscriptions.push(vscode.commands.registerCommand('extension.policy.smartPaste', () => SmartCopy.Paste()));
 
-    // Upload Policy
+    // Upload currently open Policy
     context.subscriptions.push(vscode.commands.registerCommand('extension.policy.upload', () => B2CUtils.uploadPolicyRegister()));
+
+    // Upload all policies for the default environment
+    context.subscriptions.push(vscode.commands.registerCommand('extension.policy.uploadAll', () => B2CUtils.uploadAllPoliciesRegister()));
 
     // Load IEF schema
     XsdHelper.getIefSchema();
