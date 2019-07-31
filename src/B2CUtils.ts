@@ -6,6 +6,8 @@ import Consts from './Consts';
 import { AuthenticationContext } from 'adal-node';
 import Config from './config';
 import * as fs from 'fs';
+import * as async from 'async';
+import { resolve } from 'url';
 
 var xpath = require('xpath');
 var DOMParser = require('xmldom').DOMParser;
@@ -13,7 +15,7 @@ var DOMParser = require('xmldom').DOMParser;
 interface IPolicy {
     policyInfo: PolicyInfoObj,
     xmlData: string,
-    uploaded: boolean
+    queued: boolean
 }
 
 interface PolicyInfoObj {
@@ -23,6 +25,8 @@ interface PolicyInfoObj {
 }
 
 export default class B2CUtils {
+
+    static uploadQueue;
 
     static devcodelogin(tenantId: string, ClientId: string): Thenable<adal.TokenResponse> {
         var authorityUrl = Consts.ADALauthURLPrefix + tenantId;
@@ -107,69 +111,104 @@ export default class B2CUtils {
         let files = await vscode.workspace.findFiles(
             new vscode.RelativePattern(`${vscode.workspace.rootPath}/Environments/${targetEnvironment}` as string, '*.{xml}'));
 
-        var policies = this.loadPolicies(files);
+        //load all policies in memory
+        let policies = this.loadPolicies(files);
+
+        //upload policies recursively
+        this.uploadQueue = [];
         for (const policy of policies) {
-            await this.uploadSinglePolicy(tokenResponse, policy[1], policies);
+            await this.uploadSinglePolicy(tokenResponse.accessToken, policy[1], policies);
+        }
+        B2CUtils.processUploadQueue();
+    }
+
+    static processUploadQueue() {
+        if (this.uploadQueue.length > 0) {
+            async.series(this.uploadQueue, (err) => {
+                if (err) {
+                    vscode.window.showErrorMessage(`An error has occurred during the policies upload: ${err}`);
+                    return;
+                }
+                vscode.window.showInformationMessage('All policies have been successfully uploaded');
+            })
+        }
+        else {
+            vscode.window.showErrorMessage('The policies upload queue is empty');
         }
     }
 
-    static async uploadSinglePolicy(tokenResponse: adal.TokenResponse, policy: any, policies: Map<string, IPolicy>) {
-        if (policy.uploaded) {
+    static async uploadSinglePolicy(token: string, policy: IPolicy, policies: Map<string, IPolicy>) {
+        if (policy.queued) {
             return;
         }
 
-        // upload base policy first
+        //upload base policy first
         if (policy.policyInfo.BasePolicyId) {
             let basePolicy = policies.get(policy.policyInfo.BasePolicyId);
-            if (basePolicy && !basePolicy.uploaded) {
-                await this.uploadSinglePolicy(tokenResponse, basePolicy, policies);
+            if (basePolicy && !basePolicy.queued) {
+                await this.uploadSinglePolicy(token, basePolicy, policies);
             }
         }
 
-        var bearertoken = "Bearer " + tokenResponse.accessToken;
-
-        var options2 = {
+        const options = {
             method: "PUT",
             url: Consts.B2CGraphEndpoint + "/" + policy.policyInfo.PolicyId + "/$value",
             headers: {
-                "Authorization": bearertoken,
+                "Authorization": "Bearer " + token,
                 "Content-Type": "application/xml"
             }
         };
 
-        var request = require('request');
-        function callback(this: B2CUtils, error, response) {
-            if (!error && response.statusCode == 200) {
-                console.error("Upload success.")
-                vscode.window.showInformationMessage("Upload success")
-            }
-            else {
-                var rspbody = response.body;
-                var errmsg = JSON.parse(rspbody).error.message;
-                console.error("Upload failed: " + errmsg)
-                vscode.window.showErrorMessage(errmsg);
-            }
-        }
-
-        vscode.window.withProgress({
-            location: vscode.ProgressLocation.Notification,
-            title: "Uploading Policy (" + policy.policyInfo.PolicyId + ")...",
-            cancellable: false
-        },
-            async () => {
-                await request(options2, callback.bind(this)).write(policy.xmlData);
-                policy.uploaded = true;
+        this.uploadQueue.push(async (cb) => {
+            const request = require('request');
+            let promise = new Promise((resolve, reject) => {
+                try {
+                    request(options, (error, response) => {
+                        if (!error && response.statusCode == 200) {
+                            resolve(response);
+                            cb(null, response);
+                            vscode.window.showInformationMessage(`${policy.policyInfo.PolicyId} policy uploaded successfully`)
+                        }
+                        else {
+                            reject(error);
+                            cb(error);
+                            vscode.window.showErrorMessage(`${policy.policyInfo.PolicyId} policy upload failed: ${response.body}`)
+                        }
+                    }).write(policy.xmlData);
+                }
+                catch (error) {
+                    vscode.window.showErrorMessage(error);
+                    reject(error);
+                    cb(error);
+                }
             });
+            await promise;
+        });
+        policy.queued = true;
+
+    }
+
+    static uploadCallback(error, response) {
+        if (!error && response.statusCode == 200) {
+            console.error("Upload success.")
+            vscode.window.showInformationMessage("Upload success");
+        }
+        else {
+            const rspbody = response.body;
+            const errmsg = JSON.parse(rspbody).error.message;
+            console.error("Upload failed: " + errmsg)
+            vscode.window.showErrorMessage(errmsg);
+        }
     }
 
     static loadPolicies(files: vscode.Uri[]): Map<string, IPolicy> {
         var result = new Map<string, IPolicy>();
         files.forEach(file => {
             try {
-                let xmlData = fs.readFileSync(file.fsPath).toString();
-                let xmlDoc = new DOMParser().parseFromString(xmlData);
-                let selector = xpath.useNamespaces({ "ns": "http://schemas.microsoft.com/online/cpim/schemas/2013/06" });
-                let policyId = selector("./ns:TrustFrameworkPolicy/@PolicyId", xmlDoc)[0].nodeValue;
+                const xmlData = fs.readFileSync(file.fsPath).toString();
+                const xmlDoc = new DOMParser().parseFromString(xmlData);
+                const selector = xpath.useNamespaces({ "ns": "http://schemas.microsoft.com/online/cpim/schemas/2013/06" });
+                const policyId = selector("./ns:TrustFrameworkPolicy/@PolicyId", xmlDoc)[0].nodeValue;
                 let basePolicyId = "";
                 if (selector("./ns:TrustFrameworkPolicy/ns:BasePolicy", xmlDoc).length > 0) {
                     basePolicyId = selector("./ns:TrustFrameworkPolicy/ns:BasePolicy/ns:PolicyId", xmlDoc)[0].textContent;
@@ -181,7 +220,7 @@ export default class B2CUtils {
                         BasePolicyId: basePolicyId
                     },
                     xmlData: xmlData,
-                    uploaded: false
+                    queued: false
                 });
             } catch (error) {
                 vscode.window.showErrorMessage("Error retrieving PolicyId and BasePolicyId from Policy File. Please ensure the file being uploaded is a valid B2C Policy file.");
@@ -253,18 +292,6 @@ export default class B2CUtils {
         };
 
         var request = require('request');
-        function callback(this: B2CUtils, error, response, body) {
-            if (!error && response.statusCode == 200) {
-                console.error("Upload success.")
-                vscode.window.showInformationMessage("Upload success")
-            }
-            else {
-                var rspbody = response.body;
-                var errmsg = JSON.parse(rspbody).error.message;
-                console.error("Upload failed: " + errmsg)
-                vscode.window.showErrorMessage(errmsg);
-            }
-        }
 
         vscode.window.withProgress({
             location: vscode.ProgressLocation.Notification,
@@ -272,7 +299,20 @@ export default class B2CUtils {
             cancellable: false
         },
             async (progress) => {
-                await request(options2, callback.bind(this)).write(docContent)
+                await request(options2, uploadCallback.bind(this)).write(docContent)
             });
+
+        function uploadCallback(error, response) {
+            if (!error && response.statusCode == 200) {
+                console.error("Upload success.")
+                vscode.window.showInformationMessage("Upload success");
+            }
+            else {
+                const rspbody = response.body;
+                const errmsg = JSON.parse(rspbody).error.message;
+                console.error("Upload failed: " + errmsg)
+                vscode.window.showErrorMessage(errmsg);
+            }
+        }
     }
 }
