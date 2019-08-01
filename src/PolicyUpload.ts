@@ -23,7 +23,7 @@ interface PolicyInfoObj {
     TenantId: string;
 }
 
-export default class B2CUtils {
+export default class PolicyUpload {
 
     static uploadQueue;
 
@@ -75,7 +75,7 @@ export default class B2CUtils {
     }
 
     static acquireToken(tenantId: string): Thenable<adal.TokenResponse> {
-        let clientID = B2CUtils.getB2CAPIClientID();
+        let clientID = PolicyUpload.getMSGraphClientID();
         let authURL = Consts.ADALauthURLPrefix + tenantId;
         let authcontext = new adal.AuthenticationContext(authURL);
 
@@ -83,7 +83,7 @@ export default class B2CUtils {
             authcontext.acquireToken(Consts.ADALresource, "", clientID, function (err, tokenResponse) {
                 //reauthenticate if the access token is invalid
                 if (err) {
-                    B2CUtils.devcodelogin(tenantId, clientID)
+                    PolicyUpload.devcodelogin(tenantId, clientID)
                         .then(
                             tokenResponse => resolve(tokenResponse),
                             err => reject(err));
@@ -95,14 +95,14 @@ export default class B2CUtils {
         })
     }
 
-    static uploadPolicyRegister() {
-        var PolicyInfo = B2CUtils.getPolicyInfo();
+    static uploadCurrentPolicy() {
+        var PolicyInfo = PolicyUpload.getPolicyInfo();
 
         this.acquireToken(PolicyInfo.TenantId).then(tokenResponse =>
-            B2CUtils.uploadpolicy(tokenResponse as adal.TokenResponse, PolicyInfo.PolicyId));
+            PolicyUpload.uploadPolicy(tokenResponse as adal.TokenResponse, PolicyInfo.PolicyId));
     }
 
-    static async uploadAllPoliciesRegister() {
+    static async uploadAllPolicies() {
         let targetEnvironment = Config.GetDefaultEnvironment();
         let environment = await Config.GetEnvironment(targetEnvironment);
         let tokenResponse = await this.acquireToken(environment.Tenant);
@@ -118,7 +118,7 @@ export default class B2CUtils {
         for (const policy of policies) {
             await this.uploadSinglePolicy(tokenResponse.accessToken, policy[1], policies);
         }
-        B2CUtils.processUploadQueue();
+        PolicyUpload.processUploadQueue();
     }
 
     static processUploadQueue() {
@@ -260,7 +260,7 @@ export default class B2CUtils {
     }
 
 
-    static getB2CAPIClientID() {
+    static getMSGraphClientID() {
         var config = vscode.workspace.getConfiguration('aadb2c.graph');
 
         var RtnVal = config.has("clientid");
@@ -271,7 +271,7 @@ export default class B2CUtils {
         return "" + config.get("clientid");
     }
 
-    static async uploadpolicy(tokenResponse: adal.TokenResponse, PolicyId: string) {
+    static async uploadPolicy(tokenResponse: adal.TokenResponse, PolicyId: string) {
         var at = tokenResponse.accessToken;
         var bearertoken = "Bearer " + at;
 
@@ -306,8 +306,8 @@ export default class B2CUtils {
 
         function uploadCallback(error, response) {
             if (!error && response.statusCode == 200) {
-                console.error("Upload success.")
-                vscode.window.showInformationMessage("Upload success");
+                console.info("Policy " + PolicyId + " successfully uploaded.")
+                vscode.window.showInformationMessage("Policy '" + PolicyId + "' uploaded.");
             }
             else {
                 const rspbody = response.body;

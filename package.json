@@ -78,11 +78,11 @@
             },
             {
                 "command": "extension.policy.upload",
-                "title": "B2C Policy Upload"
+                "title": "B2C Upload current policy"
             },
             {
                 "command": "extension.policy.uploadAll",
-                "title": "Upload all B2C Policies"
+                "title": "B2C Upload all policies"
             }
         ],
         "keybindings": [
@@ -132,14 +132,14 @@
                 "command": "extension.policy.upload",
                 "key": "shift+ctrl+u",
                 "mac": "shift+cmd+u",
-                "title": "Single B2C policy upload",
+                "title": "B2C upload current policy",
                 "when": "editorTextFocus"
             },
             {
                 "command": "extension.policy.uploadAll",
                 "key": "shift+alt+u",
                 "mac": "shift+option+u",
-                "title": "All B2C policies upload",
+                "title": "B2C upload all policies",
                 "when": "editorTextFocus"
             }
         ],

@@ -14,7 +14,7 @@ import PolicBuild from './PolicyBuild';
 import SmartCopy from './SmartCopy';
 import CompletionProvider from './CompletionProvider';
 import XsdHelper from './services/XsdHelper';
-import B2CUtils from './B2CUtils';
+import PolicyUpload from './PolicyUpload';
 
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
@@ -97,10 +97,10 @@ export function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(vscode.commands.registerCommand('extension.policy.smartPaste', () => SmartCopy.Paste()));
 
     // Upload currently open Policy
-    context.subscriptions.push(vscode.commands.registerCommand('extension.policy.upload', () => B2CUtils.uploadPolicyRegister()));
+    context.subscriptions.push(vscode.commands.registerCommand('extension.policy.upload', () => PolicyUpload.uploadCurrentPolicy()));
 
     // Upload all policies for the default environment
-    context.subscriptions.push(vscode.commands.registerCommand('extension.policy.uploadAll', () => B2CUtils.uploadAllPoliciesRegister()));
+    context.subscriptions.push(vscode.commands.registerCommand('extension.policy.uploadAll', () => PolicyUpload.uploadAllPolicies()));
 
     // Load IEF schema
     XsdHelper.getIefSchema();
