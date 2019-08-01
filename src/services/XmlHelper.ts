@@ -238,10 +238,37 @@ export default class XmlHelper {
 
     public static IsStartOfAttribute(document: TextDocument, position: Position): boolean {
         let wordRange = document.getWordRangeAtPosition(position);
-        let wordStart = wordRange ? wordRange.start : position;
+        let wordStartPosition = wordRange ? wordRange.start : position;
         let text = document.getText();
-        return XmlHelper.IsTextBeforeTypedWordEqualTo(document, position, ' ') &&
-            text.lastIndexOf('<', document.offsetAt(wordStart)) > text.lastIndexOf('>', document.offsetAt(wordStart) - 1);
+        let wordStartIndex: number = document.offsetAt(wordStartPosition)
+
+
+        let beforeStartBracket: number = text.lastIndexOf('<', wordStartIndex - 1);
+        let beforeStartBracketIsAnEndTak: number = text.lastIndexOf('</', wordStartIndex - 1);
+        let beforeCloseBracket: number = text.lastIndexOf('>', wordStartIndex - 1);
+        let afterStartBracket: number = text.indexOf('<', wordStartIndex);
+        let afterCloseBracket: number = text.indexOf('>', wordStartIndex);
+
+        // Check whether the cursor is inside a property 
+        let insideQuotation: boolean = false;
+        
+        let beforeQuotation: number = text.lastIndexOf('"', wordStartIndex - 1);
+        if (beforeQuotation > beforeStartBracket)
+            for (let i = beforeQuotation + 1; i <= (wordStartIndex -1); i++) {
+                if (text[i] != " ") 
+                    {insideQuotation = true; break;}
+            }
+
+        
+        // The cursor must be immediately after START, but not after CLOSE and
+        // immediately before CLOSE, but not after START
+        return XmlHelper.IsTextBeforeTypedWordEqualTo(document, position, ' ') && 
+        ((beforeStartBracket > beforeCloseBracket) || beforeCloseBracket == -1) &&
+        ((afterCloseBracket < afterStartBracket) || afterStartBracket == -1) &&
+        beforeStartBracket != beforeStartBracketIsAnEndTak &&
+        wordStartIndex >= beforeStartBracket &&
+        wordStartIndex <= afterCloseBracket &&
+        (!insideQuotation);
     }
 
     // Check if the cursor is about complete the value of an attribute.

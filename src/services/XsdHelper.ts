@@ -155,7 +155,8 @@ export default class XsdHelper {
             let suggestion: Suggestion = new Suggestion();
             suggestion.InsertText = selectedElements[i].Name;
             suggestion.Help = selectedElements[i].Description;
-            suggestion.HasChildren = (IefSchema.filter((iefSchema: IefSchema) => iefSchema.Type === 'e' && iefSchema.parentXpath === selectedElements[i].xpath).length > 0);
+            suggestion.HasChildren = (IefSchema.filter((iefSchema: IefSchema) => iefSchema.Type === 'e' && iefSchema.parentXpath === selectedElements[i].xpath).length > 0) &&
+                    selectedElements[i].Name != "InputClaim" && selectedElements[i].Name != "OutputClaim";
             suggestion.HasContent = selectedElements[i].HasContent;
             suggestions.push(suggestion)
         }
