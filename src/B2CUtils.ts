@@ -7,7 +7,6 @@ import { AuthenticationContext } from 'adal-node';
 import Config from './config';
 import * as fs from 'fs';
 import * as async from 'async';
-import { resolve } from 'url';
 
 var xpath = require('xpath');
 var DOMParser = require('xmldom').DOMParser;
