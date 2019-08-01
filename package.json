@@ -79,6 +79,10 @@
             {
                 "command": "extension.policy.upload",
                 "title": "B2C Policy Upload"
+            },
+            {
+                "command": "extension.policy.uploadAll",
+                "title": "Upload all B2C Policies"
             }
         ],
         "keybindings": [

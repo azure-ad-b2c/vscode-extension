@@ -170,9 +170,12 @@ export default class B2CUtils {
                             vscode.window.showInformationMessage(`${policy.policyInfo.PolicyId} policy uploaded successfully`)
                         }
                         else {
+                            if(!error){
+                                error = JSON.parse(response.body).error.message;
+                            }
                             reject(error);
                             cb(error);
-                            vscode.window.showErrorMessage(`${policy.policyInfo.PolicyId} policy upload failed: ${response.body}`)
+                            vscode.window.showErrorMessage(`${policy.policyInfo.PolicyId} policy upload failed: ${error}`)
                         }
                     }).write(policy.xmlData);
                 }
