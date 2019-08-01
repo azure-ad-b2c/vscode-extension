@@ -79,6 +79,10 @@
             {
                 "command": "extension.policy.upload",
                 "title": "B2C Policy Upload"
+            },
+            {
+                "command": "extension.policy.uploadAll",
+                "title": "Upload all B2C Policies"
             }
         ],
         "keybindings": [
@@ -128,7 +132,14 @@
                 "command": "extension.policy.upload",
                 "key": "shift+ctrl+u",
                 "mac": "shift+cmd+u",
-                "title": "B2C Policy Upload",
+                "title": "Single B2C policy upload",
+                "when": "editorTextFocus"
+            },
+            {
+                "command": "extension.policy.uploadAll",
+                "key": "shift+alt+u",
+                "mac": "shift+option+u",
+                "title": "All B2C policies upload",
                 "when": "editorTextFocus"
             }
         ],
@@ -210,6 +221,11 @@
                     "type": "string",
                     "default": "",
                     "description": "The B2C Upload ApplicationID"
+                },
+                "environment.default": {
+                    "type": "string",
+                    "default": "",
+                    "description": "Default environment name"
                 }
             }
         }
@@ -222,16 +238,17 @@
         "test": "npm run compile && node ./node_modules/vscode/bin/test"
     },
     "devDependencies": {
-        "typescript": "^3.2.2",
-        "@types/node": "^10.12.18",
-        "@types/mocha": "^5.2.5"
+        "@types/mocha": "^5.2.5",
+        "@types/node": "^10.14.13",
+        "typescript": "^3.2.2"
     },
     "dependencies": {
         "adal-node": "^0.1.28",
+        "async": "^3.1.0",
         "clipboardy": "^1.2.3",
         "copy-paste": "^1.3.0",
         "request": "^2.88.0",
-        "vscode": "^1.1.34",
+        "vscode": "^1.1.35",
         "xmldom": "^0.1.27",
         "xpath": "0.0.27"
     }

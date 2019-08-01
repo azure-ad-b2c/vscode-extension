@@ -146,14 +146,14 @@ export default class XmlHelper {
             hierarchyFiles.push(file);
         }
 
-        var paretnPolicy: FileData[] = files.filter(x => x.Policy == file.ParentPolicy);
+        var parentPolicy: FileData[] = files.filter(x => x.Policy == file.ParentPolicy);
 
-        if (paretnPolicy != null && paretnPolicy.length > 0) {
+        if (parentPolicy != null && parentPolicy.length > 0) {
             level++;
-            paretnPolicy[0].Level = level;
-            hierarchyFiles.push(paretnPolicy[0]);
+            parentPolicy[0].Level = level;
+            hierarchyFiles.push(parentPolicy[0]);
 
-            hierarchyFiles = XmlHelper.GetFileHierarchy(files, paretnPolicy[0], hierarchyFiles, level);
+            hierarchyFiles = XmlHelper.GetFileHierarchy(files, parentPolicy[0], hierarchyFiles, level);
         }
 
         return hierarchyFiles.sort(x => x.Level).reverse();

@@ -43,3 +43,9 @@ To upload a policy
 - Enter the code or paste from clipboard (the code should have already been added to the clipboard)
     ![Sign-in](media/policy-upload-singin2.png)
 - Sign-in with your Azure AD B2C tenant admin account
+
+## Uploaded all policies for an environment
+The default environment name in the extension's settings needs to be configured before using 'Upload all policies' command.
+The same process for logging in to Azure should be followed (refer to the "Upload a policy" section above).
+To initiate the upload press `ALT`+`SHIFT`+`U` or launch the **Upload all B2C Policies** command in the commands list (`CTRL`+`SHIFT`+`P`).
+Once all policies are successfully uploaded a popup will display a success message. An error message will be displayed for all failed uploads. 

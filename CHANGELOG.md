@@ -1,5 +1,8 @@
 # Change Log
 
+## July 2019
+- Implemented all policies upload command (https://github.com/azure-ad-b2c/vscode-extension/blob/master/src/help/policy-upload.md)
+
 ## May 2019
 - [Policy upload](https://github.com/azure-ad-b2c/vscode-extension/blob/master/src/help/policy-upload.md) 
 
