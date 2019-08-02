@@ -103,9 +103,7 @@ export default class PolicyUpload {
     }
 
     static async uploadAllPolicies() {
-        let targetEnvironment = Config.GetDefaultEnvironment();
-        let environment = await Config.GetEnvironment(targetEnvironment);
-        let tokenResponse = await this.acquireToken(environment.Tenant);
+        const targetEnvironment = Config.GetDefaultEnvironment();
 
         //default path to policies is the working folder
         let policiesPath = vscode.workspace.rootPath as string;
@@ -114,11 +112,28 @@ export default class PolicyUpload {
             policiesPath += `/Environments/${targetEnvironment}`;
         }
 
-        let files = await vscode.workspace.findFiles(
-            new vscode.RelativePattern(policiesPath, '*.{xml}'));
+        const files = await vscode.workspace.findFiles(new vscode.RelativePattern(policiesPath, '*.{xml}'));
 
         //load all policies in memory
-        let policies = this.loadPolicies(files);
+        const policies = this.loadPolicies(files);
+
+        if (!policies || policies.size == 0) {
+            vscode.window.showErrorMessage(`No B2C policies found in ${targetEnvironment}`);
+            return;
+        }
+
+        let tenantId = targetEnvironment ?
+            //get tenant id from the environment configuration
+            (await Config.GetEnvironment(targetEnvironment)).Tenant :
+            //get tenant id from the 1st policy in the list
+            policies.values().next().value.policyInfo.TenantId;
+        if (!tenantId) {
+            vscode.window.showErrorMessage("Cannot identify the B2C Tenant Id");
+            return;
+        }
+
+        //get the access token
+        const tokenResponse = await this.acquireToken(tenantId);
 
         //upload policies recursively
         this.policyUploadQueue = [];
@@ -217,20 +232,30 @@ export default class PolicyUpload {
                 const xmlData = fs.readFileSync(file.fsPath).toString();
                 const xmlDoc = new DOMParser().parseFromString(xmlData);
                 const selector = xpath.useNamespaces({ "ns": "http://schemas.microsoft.com/online/cpim/schemas/2013/06" });
+
+                //skip the file if policy id or tenant id are not found
+                if ((selector("./ns:TrustFrameworkPolicy/@PolicyId", xmlDoc).length == 0)
+                    || selector("./ns:TrustFrameworkPolicy/@TenantId", xmlDoc).length == 0) {
+                    return;
+                }
+
                 const policyId = selector("./ns:TrustFrameworkPolicy/@PolicyId", xmlDoc)[0].nodeValue;
+                const tenantId = selector("./ns:TrustFrameworkPolicy/@TenantId", xmlDoc)[0].nodeValue;
                 let basePolicyId = "";
                 if (selector("./ns:TrustFrameworkPolicy/ns:BasePolicy", xmlDoc).length > 0) {
                     basePolicyId = selector("./ns:TrustFrameworkPolicy/ns:BasePolicy/ns:PolicyId", xmlDoc)[0].textContent;
                 }
+
                 result.set(policyId, {
                     policyInfo: {
-                        TenantId: "",
+                        TenantId: tenantId,
                         PolicyId: policyId,
                         BasePolicyId: basePolicyId
                     },
                     xmlData: xmlData,
                     queued: false
                 });
+                
             } catch (error) {
                 vscode.window.showErrorMessage("Error retrieving PolicyId and BasePolicyId from Policy File. Please ensure the file being uploaded is a valid B2C Policy file.");
                 throw Error;
