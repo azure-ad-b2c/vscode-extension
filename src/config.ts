@@ -1,13 +1,10 @@
 import fs = require('fs');
 import * as vscode from 'vscode';
-import { WorkspaceConfiguration } from 'vscode';
 
 export default class Config {
 
-    private static config: WorkspaceConfiguration = vscode.workspace.getConfiguration();
-
     static GetDefaultEnvironment(): string {
-        return this.config.get("environment.default") as string;
+        return vscode.workspace.getConfiguration().get("environment.default") as string;
     }
 
     static GetEnvironments(): Promise<Array<any>> {

@@ -239,7 +239,7 @@
     },
     "devDependencies": {
         "@types/mocha": "^5.2.5",
-        "@types/node": "^10.14.13",
+        "@types/node": "^10.14.14",
         "typescript": "^3.2.2"
     },
     "dependencies": {
