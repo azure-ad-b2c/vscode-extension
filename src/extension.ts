@@ -15,6 +15,7 @@ import SmartCopy from './SmartCopy';
 import CompletionProvider from './CompletionProvider';
 import XsdHelper from './services/XsdHelper';
 import PolicyUpload from './PolicyUpload';
+import B2CArtifacts from './B2CArtifacts';
 
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
@@ -101,6 +102,9 @@ export function activate(context: vscode.ExtensionContext) {
 
     // Upload all policies for the default environment
     context.subscriptions.push(vscode.commands.registerCommand('extension.policy.uploadAll', () => PolicyUpload.uploadAllPolicies()));
+
+    // Update appSettings with IEF appIds and B2C extension app id and object id
+    context.subscriptions.push(vscode.commands.registerCommand('extension.settings.b2cArtifacts', () => B2CArtifacts.GetB2CArtifacts()));    
 
     // Load IEF schema
     XsdHelper.getIefSchema();
