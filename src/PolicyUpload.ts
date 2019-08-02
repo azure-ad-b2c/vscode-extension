@@ -25,7 +25,7 @@ interface PolicyInfoObj {
 
 export default class PolicyUpload {
 
-    static uploadQueue;
+    private static policyUploadQueue;
 
     static devcodelogin(tenantId: string, ClientId: string): Thenable<adal.TokenResponse> {
         var authorityUrl = Consts.ADALauthURLPrefix + tenantId;
@@ -107,28 +107,35 @@ export default class PolicyUpload {
         let environment = await Config.GetEnvironment(targetEnvironment);
         let tokenResponse = await this.acquireToken(environment.Tenant);
 
+        //default path to policies is the working folder
+        let policiesPath = vscode.workspace.rootPath as string;
+        if (targetEnvironment) {
+            //adding envionment path if default environment name is set in the extension's settings
+            policiesPath += `/Environments/${targetEnvironment}`;
+        }
+
         let files = await vscode.workspace.findFiles(
-            new vscode.RelativePattern(`${vscode.workspace.rootPath}/Environments/${targetEnvironment}` as string, '*.{xml}'));
+            new vscode.RelativePattern(policiesPath, '*.{xml}'));
 
         //load all policies in memory
         let policies = this.loadPolicies(files);
 
         //upload policies recursively
-        this.uploadQueue = [];
+        this.policyUploadQueue = [];
         for (const policy of policies) {
-            await this.uploadSinglePolicy(tokenResponse.accessToken, policy[1], policies);
+            await this.queuePolicyForUpload(tokenResponse.accessToken, policy[1], policies);
         }
-        PolicyUpload.processUploadQueue();
+        PolicyUpload.processPolicyUploadQueue();
     }
 
-    static processUploadQueue() {
-        if (this.uploadQueue.length > 0) {
-            async.series(this.uploadQueue, (err) => {
+    static processPolicyUploadQueue() {
+        if (this.policyUploadQueue.length > 0) {
+            async.series(this.policyUploadQueue, (err) => {
                 if (err) {
                     vscode.window.showErrorMessage(`An error has occurred during the policies upload: ${err}`);
                     return;
                 }
-                vscode.window.showInformationMessage('All policies have been successfully uploaded');
+                vscode.window.showInformationMessage(`${this.policyUploadQueue.length} policies have been successfully uploaded`);
             })
         }
         else {
@@ -136,7 +143,7 @@ export default class PolicyUpload {
         }
     }
 
-    static async uploadSinglePolicy(token: string, policy: IPolicy, policies: Map<string, IPolicy>) {
+    static async queuePolicyForUpload(token: string, policy: IPolicy, policies: Map<string, IPolicy>) {
         if (policy.queued) {
             return;
         }
@@ -145,7 +152,7 @@ export default class PolicyUpload {
         if (policy.policyInfo.BasePolicyId) {
             let basePolicy = policies.get(policy.policyInfo.BasePolicyId);
             if (basePolicy && !basePolicy.queued) {
-                await this.uploadSinglePolicy(token, basePolicy, policies);
+                await this.queuePolicyForUpload(token, basePolicy, policies);
             }
         }
 
@@ -158,7 +165,7 @@ export default class PolicyUpload {
             }
         };
 
-        this.uploadQueue.push(async (cb) => {
+        this.policyUploadQueue.push(async (cb) => {
             const request = require('request');
             let promise = new Promise((resolve, reject) => {
                 try {
@@ -169,7 +176,7 @@ export default class PolicyUpload {
                             vscode.window.showInformationMessage(`${policy.policyInfo.PolicyId} policy uploaded successfully`)
                         }
                         else {
-                            if(!error){
+                            if (!error) {
                                 error = JSON.parse(response.body).error.message;
                             }
                             reject(error);
