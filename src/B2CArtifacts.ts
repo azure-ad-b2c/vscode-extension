@@ -29,25 +29,25 @@ export default class B2CArtifacts {
                 }
                 else {
                     vscode.workspace.openTextDocument(filePath)
-                        .then(async doc => {
-                            let appSettings = JSON.parse(doc.getText());
-                            for(let entry of appSettings.Environments) {
-                                if (entry.PolicySettings == null)
-                                    vscode.window.showErrorMessage("Can't process '" + entry.Name + "' environment policies. Error: Accepted PolicySettings element is missing. You may use old version of the appSettings.json file. For more information, see [App Settings](https://github.com/yoelhor/aad-b2c-vs-code-extension/blob/master/README.md#app-settings)");
-                                else
-                                    await getTenantArtifacts(entry);
-                            };
-                            let docOut = JSON.stringify(appSettings);
-                            fs.writeFile(filePath, Consts.DefaultDeploymentSettings, 'utf8', (err) => {
-                                if (err) throw err;
-                                vscode.workspace.openTextDocument(filePath).then(d => {
-                                    vscode.window.showTextDocument(d).then(e => {
-                                            e.edit(async edit => {
-                                                edit.delete(new vscode.Range(new vscode.Position(0,0) ,new vscode.Position(9999,0)));
-                                                edit.insert(new vscode.Position(0,0), docOut);
-                                                await vscode.commands.executeCommand('editor.action.formatDocument');
-                                            })
-                                        })
+                    .then(async doc => {
+                        let appSettings = JSON.parse(doc.getText());
+                        for(let entry of appSettings.Environments) {
+                            if (entry.PolicySettings == null)
+                                vscode.window.showErrorMessage("Can't process '" + entry.Name + "' environment policies. Error: Accepted PolicySettings element is missing. You may use old version of the appSettings.json file. For more information, see [App Settings](https://github.com/yoelhor/aad-b2c-vs-code-extension/blob/master/README.md#app-settings)");
+                            else
+                                await getTenantArtifacts(entry);
+                        };
+                        let docOut = JSON.stringify(appSettings);
+                        fs.writeFile(filePath, Consts.DefaultDeploymentSettings, 'utf8', (err) => {
+                            if (err) throw err;
+                            vscode.workspace.openTextDocument(filePath).then(d => {
+                                vscode.window.showTextDocument(d).then(e => {
+                                    e.edit(async edit => {
+                                        edit.delete(new vscode.Range(new vscode.Position(0,0) ,new vscode.Position(9999,0)));
+                                        edit.insert(new vscode.Position(0,0), docOut);
+                                        await vscode.commands.executeCommand('editor.action.formatDocument');
+                                    })
+                                });
                             }); 
                         });                           
                     });                   
@@ -57,26 +57,26 @@ export default class B2CArtifacts {
         function getTenantArtifacts(entry: any): Promise<any> {
             return new Promise((resolve, reject) => {
                 getToken(entry.Tenant)
-                    .then((at) => {
-                        getAppByName("ProxyIdentityExperienceFramework", at)
-                            .then((app) => {
-                                entry.PolicySettings.ProxyIdentityExperienceFrameworkAppId = app.appId;
-                            })
-                            .then(() => {
-                                getAppByName("IdentityExperienceFramework", at)
-                                    .then((app) => {
-                                        entry.PolicySettings.IdentityExperienceFrameworkAppId = app.appId;
-                                    })
-                                    .then(() => {
-                                        getAppByName("b2c-extensions-app.", at)
-                                            .then((app) => {
-                                                entry.PolicySettings.AADExtensionsAppId = app.appId;
-                                                entry.PolicySettings.AADExtensionsObjectId = app.id;                                                
-                                                resolve();
-                                            })
-                                    })                                    
-                            })                            
+                .then((at) => {
+                    getAppByName("ProxyIdentityExperienceFramework", at)
+                    .then((app) => {
+                        entry.PolicySettings.ProxyIdentityExperienceFrameworkAppId = app.appId;
                     })
+                    .then(() => {
+                        getAppByName("IdentityExperienceFramework", at)
+                        .then((app) => {
+                            entry.PolicySettings.IdentityExperienceFrameworkAppId = app.appId;
+                        })
+                    .then(() => {
+                        getAppByName("b2c-extensions-app.", at)
+                            .then((app) => {
+                                entry.PolicySettings.AADExtensionsAppId = app.appId;
+                                entry.PolicySettings.AADExtensionsObjectId = app.id;                                                
+                                resolve();
+                            })
+                        })                                    
+                    })                            
+                })
 
             });
         }
@@ -114,13 +114,7 @@ export default class B2CArtifacts {
                 };
             
                 request(options, (err, res, body) => {
-                    if (err)
-                    {
-                        /*
-                            var rspbody = response.body;
-                            var errmsg = JSON.parse(rspbody).error.message;
-                            console.error("Application not found: " + errmsg)                        
-                        */
+                    if (err) {
                         vscode.window.showErrorMessage(err);
                         reject(err);
                     } else {
@@ -140,12 +134,10 @@ export default class B2CArtifacts {
                 context.acquireUserCode(resource, clientId, 'es-mx', function (err, response) {
                     if (err) {
                         console.log('well that didn\'t work: ' + err.message);
-                        if( err.message = "Error login in - The clientId parameter is required.")
-                        {
+                        if( err.message = "Error login in - The clientId parameter is required.") {
                             vscode.window.showErrorMessage("The Graph API ClientId has not been set in Settings.");
                         }
-                        else
-                        {
+                        else {
                             vscode.window.showErrorMessage("Error login in - " + err.message);
                         }
                         reject(err);
@@ -154,22 +146,18 @@ export default class B2CArtifacts {
                         var usercode = response.userCode;
                         var ncp = require("copy-paste");
                         ncp.copy(usercode, function () {
-                        // complete...
-                        })
-
-                        vscode.window.showErrorMessage(`Please login to ${tenantId} with the following code (${response.userCode})` ,"Login")
+                            vscode.window.showErrorMessage(`Please login to ${tenantId} with the following code (${response.userCode})` ,"Login")
                             .then(selection => {
                                 if(selection == "Login") {
                                     console.log('starting login');
-                                    vscode.commands.executeCommand('vscode.open',
-                                       vscode.Uri.parse("https://www.microsoft.com/devicelogin")).then(() => {
-                                        setTimeout(()=>{
+                                    vscode.commands.executeCommand('vscode.open', vscode.Uri.parse("https://www.microsoft.com/devicelogin"))
+                                    .then(() => {
+                                        setTimeout(()=> {
                                             console.log('calling acquire token with device code');
                                             context.acquireTokenWithDeviceCode(resource, clientId, response, function (Error, tokenResponse ) {
                                                 if (err) {
                                                     console.log('error happens when acquiring token with device code');
                                                     console.log(err);
-            
                                                     vscode.window.showErrorMessage('An error happens when acquiring token with device code');
                                                     reject(err);
                                                 }
@@ -183,8 +171,8 @@ export default class B2CArtifacts {
                                     });
                                 } else
                                     reject("login rejected");
-                                }
-                            );
+                            });
+                        });
                     }
                 });
             });
