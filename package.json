@@ -87,7 +87,7 @@
             {
                 "command": "extension.settings.b2cArtifacts",
                 "title": "B2C appSettings: update app ids"
-            }            
+            }
         ],
         "keybindings": [
             {

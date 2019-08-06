@@ -56,28 +56,28 @@ export default class B2CArtifacts {
 
         function getTenantArtifacts(entry: any): Promise<any> {
             return new Promise((resolve, reject) => {
-                getToken(entry.Tenant)
+                let tenantId = entry.Tenant;
+                getToken(tenantId)
                 .then((at) => {
-                    getAppByName("ProxyIdentityExperienceFramework", at)
+                    getAppByName(tenantId, "ProxyIdentityExperienceFramework", at)
                     .then((app) => {
                         entry.PolicySettings.ProxyIdentityExperienceFrameworkAppId = app.appId;
-                    })
+                    }).catch(() => resolve()) // skip if not found
                     .then(() => {
-                        getAppByName("IdentityExperienceFramework", at)
+                        getAppByName(tenantId, "IdentityExperienceFramework", at)
                         .then((app) => {
                             entry.PolicySettings.IdentityExperienceFrameworkAppId = app.appId;
-                        })
+                        }).catch(() => resolve()) // skip if not found
+                    })
                     .then(() => {
-                        getAppByName("b2c-extensions-app.", at)
-                            .then((app) => {
-                                entry.PolicySettings.AADExtensionsAppId = app.appId;
-                                entry.PolicySettings.AADExtensionsObjectId = app.id;                                                
-                                resolve();
-                            })
-                        })                                    
-                    })                            
+                        getAppByName(tenantId, "b2c-extensions-app.", at)
+                        .then((app) => {
+                            entry.PolicySettings.AADExtensionsAppId = app.appId;
+                            entry.PolicySettings.AADExtensionsObjectId = app.id;                                                
+                            resolve();
+                        }).catch(() => resolve()) // skip if not found
+                    })                   
                 })
-
             });
         }
 
@@ -101,9 +101,9 @@ export default class B2CArtifacts {
             })
         }
 
-        function getAppByName(appName: string, accessToken: string): Promise<any> {
+        function getAppByName(tenantId: string, appName: string, accessToken: string): Promise<any> {
             return new Promise((resolve, reject) => {
-                console.log(" getting B2C tenant data ");
+                console.log("getting B2C tenant data ");
                 var request = require('request');
                 // using startsWith because b2c extension app name is very long! being lazy
                 let options = {
@@ -119,6 +119,11 @@ export default class B2CArtifacts {
                         reject(err);
                     } else {
                         let apps = JSON.parse(body);   
+                        if (apps.value.length == 0)
+                        {
+                            vscode.window.showErrorMessage(`${appName} not found in ${tenantId}`);
+                            reject('app not found');
+                        }
                         resolve(apps.value[0]);
                     }
                 });
