@@ -175,7 +175,11 @@ After the command is completed, you will find the exported policies under the **
 
 ## Get B2C app ids
 
-This command retrieves application ids of applications used in IEF policies and stores them in the appSettings.json file. It retrives application ids for the IEF client and resource apps (used in the login-NonInteractive Technical Profile) and application id and object id of the B2C Extensions app (used in the AAD-Common Technical Profile if needed to to store custom claims as extension attributes in B2C). The command retrieves the values for each B2C tenant identified in the appSettings.json, as per the following example. You can then reference these values using Policy Settings build command described earlier. Your B2C VSCode Extensions app needs to given Directory.ReadAll delegated permission and consented to in each B2C tenant by its administrator.
+This command retrieves application ids of applications used in IEF policies and stores them in the appSettings.json file. It retrives application ids for the IEF client and resource apps (used in the login-NonInteractive Technical Profile) and application id and object id of the B2C Extensions app (used in the AAD-Common Technical Profile if needed to to store custom claims as extension attributes in B2C). The command retrieves the values for each B2C tenant identified in the appSettings.json, as per the following example. You can then reference these values using Policy Settings build command described earlier. 
+
+To execute the command press Shift+Ctrl+P and select the 'B2C appSettings: get app ids' option.
+
+Your B2C VSCode Extensions app needs to given Directory.ReadAll delegated permission and consented to in each B2C tenant by its administrator.
 
 ```JSON
 {

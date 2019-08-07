@@ -86,7 +86,7 @@
             },
             {
                 "command": "extension.settings.b2cArtifacts",
-                "title": "B2C appSettings: update app ids"
+                "title": "B2C appSettings: get app ids"
             }
         ],
         "keybindings": [
@@ -150,7 +150,7 @@
                 "command": "extension.settings.b2cArtifacts",
                 "key": "shift+alt+a",
                 "mac": "shift+option+a",
-                "title": "B2C appSettings: update app ids",
+                "title": "B2C appSettings: get app ids",
                 "when": "editorTextFocus"
             }
         ],
