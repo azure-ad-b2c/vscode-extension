@@ -185,7 +185,8 @@ export default class PolicyUpload {
             let promise = new Promise((resolve, reject) => {
                 try {
                     request(options, (error, response) => {
-                        if (!error && response.statusCode == 200) {
+                        //B2C occasionally returnes 201 code instead of 200 in case of successful upload
+                        if (!error && [200, 201].includes(response.statusCode)) {
                             resolve(response);
                             cb(null, response);
                             vscode.window.showInformationMessage(`${policy.policyInfo.PolicyId} policy uploaded successfully`)
