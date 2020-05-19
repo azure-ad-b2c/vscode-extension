@@ -1,6 +1,7 @@
 import { Metadata } from "./models/Metadata";
 
 export default class Consts {
+  
   static TP_Metadata: Metadata[] = [
   new Metadata('openidconnect', 'client_id'),
   new Metadata('openidconnect', 'IdTokenAudience'),

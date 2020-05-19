@@ -10,7 +10,7 @@ import CustomPolicyExplorerProvider from './CustomPolicyExplorerProvider';
 import ApplicationInsightsExplorerExplorerProvider from './ApplicationInsightsExplorerExplorerProvider';
 import { ReferenceProvider } from './ReferenceProvider';
 import InsertCommands from './InsertCommands';
-import PolicBuild from './PolicyBuild';
+import PolicyBuild from './PolicyBuild';
 import SmartCopy from './SmartCopy';
 import CompletionProvider from './CompletionProvider';
 import XsdHelper from './services/XsdHelper';
@@ -88,7 +88,7 @@ export function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(vscode.commands.registerCommand('ApplicationInsightsExplorer.add', () => InsertCommands.InsertApplicationInsights()));
 
     // Policy build
-    context.subscriptions.push(vscode.commands.registerCommand('extension.policy.build', () => PolicBuild.Build()));
+    context.subscriptions.push(vscode.commands.registerCommand('extension.policy.build', () => PolicyBuild.Build()));
 
     // Smart copy
     context.subscriptions.push(vscode.commands.registerCommand('extension.policy.smartCopy', () => SmartCopy.Copy()));
