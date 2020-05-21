@@ -90,18 +90,6 @@ export default class PolicyBuild {
 								policiesFolder
 							);	
 						}
-
-						policyFilesFolderPath = path.resolve(policyFilesFolderPath);
-						// Does folder, specified to contain policies, exist?
-						if ( !fs.existsSync(policyFilesFolderPath)) {
-							if(path.isAbsolute(policyFilesFolderPath)) {
-								vscode.window.showWarningMessage(`Path "${policyFilesFolderPath}" is absolute, and thus not resolved relative to the workspace.
-																Did you mean to have it relative? i.e no leading slash in "${Consts.DefaultEnvironmentsFolder.key}" in "${this.fBuildValues}"?`)
-							}
-							vscode.window.showErrorMessage(`Folder specified by "${Consts.DefaultPoliciesFolder.key}" in "${this.fBuildValues}" does not exist. 
-															Expecting folder at "${policyFilesFolderPath}"` );
-							return;
-						}
 						
 					vscode.workspace
 						.findFiles(
@@ -181,6 +169,22 @@ export default class PolicyBuild {
 					});
 				}
 			});
+	}
+	
+	private static async isPathValid(Path: string): Promise<string | Error>{
+		
+		let ResolvedFolderPath = path.resolve(Path);
+		// Does folder, specified to contain policies, exist?
+		if ( !fs.existsSync(ResolvedFolderPath)) {
+			if(path.isAbsolute(ResolvedFolderPath)) {
+				vscode.window.showWarningMessage(`Path "${ResolvedFolderPath}" is absolute, and thus not resolved relative to the workspace.
+												Did you mean to have it relative? i.e no leading slash in "${Consts.DefaultEnvironmentsFolder.key}" in "${this.fBuildValues}"?`)
+			}
+			vscode.window.showErrorMessage(`Folder specified by "${Consts.DefaultPoliciesFolder.key}" in "${this.fBuildValues}" does not exist. 
+											Expecting folder at "${ResolvedFolderPath}"` );
+			return Error();
+		}
+		return ResolvedFolderPath;
 	}
 
 	static GetAllSettings(): string[] {
