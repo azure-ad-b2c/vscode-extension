@@ -35,7 +35,7 @@ export default class PolicyUpload {
         return new Promise((resolve, reject) => context.acquireUserCode(resource, ClientId, 'es-mx', function (err, response) {
             if (err) {
                 console.log('well that didn\'t work: ' + err.message);
-                if (err.message = "Error login in - The clientId parameter is required.") {
+                if (err.message == "Error login in - The clientId parameter is required.") {
                     vscode.window.showErrorMessage("The Graph API ClientId has not been set in Settings.");
                 }
                 else {
@@ -185,7 +185,8 @@ export default class PolicyUpload {
             let promise = new Promise((resolve, reject) => {
                 try {
                     request(options, (error, response) => {
-                        if (!error && response.statusCode == 200) {
+                        //B2C occasionally returnes 201 code instead of 200 in case of successful upload
+                        if (!error && [200, 201].includes(response.statusCode)) {
                             resolve(response);
                             cb(null, response);
                             vscode.window.showInformationMessage(`${policy.policyInfo.PolicyId} policy uploaded successfully`)

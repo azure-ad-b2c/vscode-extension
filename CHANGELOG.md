@@ -1,5 +1,10 @@
 # Change Log
 
+## February 2020
+
+- Policy upload fix
+- Update to the latest version of the custom policy XSD file
+
 ## July 2019
 - Implemented all policies upload command (https://github.com/azure-ad-b2c/vscode-extension/blob/master/src/help/policy-upload.md)
 
