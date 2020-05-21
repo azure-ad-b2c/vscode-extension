@@ -182,7 +182,47 @@ You can add or remove environments, keys, and values to accommodate your needs. 
 }
 ```
 
+## Get B2C app ids
+
+This command retrieves application ids of applications used in IEF policies and stores them in the appSettings.json file. It retrives application ids for the IEF client and resource apps (used in the login-NonInteractive Technical Profile) and application id and object id of the B2C Extensions app (used in the AAD-Common Technical Profile if needed to to store custom claims as extension attributes in B2C). The command retrieves the values for each B2C tenant identified in the appSettings.json, as per the following example. You can then reference these values using Policy Settings build command described earlier. 
+
+To execute the command press Shift+Ctrl+P and select the 'B2C appSettings: get app ids' option.
+
+Your B2C VSCode Extensions app needs to given Directory.ReadAll delegated permission and consented to in each B2C tenant by its administrator.
+
+```JSON
+{
+    "Environments": [
+        {
+            "Name": "Development",
+            "Production": false,
+            "Tenant": "devtenant.onmicrosoft.com",
+            "PolicySettings": {
+                "ProxyIdentityExperienceFrameworkAppId": "c805c589-d4e2-43bd-bd75-e1e88df44d2c",
+                "FacebookAppId": "0",
+                "AADExtensionsAppId": "0428f335-4957-491e-96bb-7ce51b81d46a",
+                "AADExtensionsObjectId": "20d75341-a1e5-4ea8-a88f-7e7dfe90b9d8",
+                "IdentityExperienceFrameworkAppId": "221dfbdb-064b-4747-a7db-a2b7e9d8865a"
+            }
+        },
+        {
+            "Name": "Production",
+            "Production": true,
+            "Tenant": "prodtenant.onmicrosoft.com",
+            "PolicySettings": {
+                "ProxyIdentityExperienceFrameworkAppId": "ee90b278-ba82-4dd2-a1b7-ed12aa6f11bf",
+                "FacebookAppId": "0",
+                "IdentityExperienceFrameworkAppId": "081becc7-eab8-4af1-89c4-eeb8892671a3",
+                "AADExtensionsAppId": "bd365420-5f77-4cb6-a224-ef794c2d05e1",
+                "AADExtensionsObjectId": "4728bfb6-ff0b-4d84-8402-dc38f2c85da9"
+            }
+        }
+    ]
+}
+```
+
 After the command is completed, you will find the exported policies under the **Environment** folder. **Important**: Before you upload the policy to your Azure AD B2C tenant, check the values of the exported policy files.
+
 
 ## Disclaimer
 
