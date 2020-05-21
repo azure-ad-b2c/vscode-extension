@@ -28,7 +28,7 @@ export default class InsertCommands {
                     });
             })
             .then(() => {
-                return vscode.window.showInputBox({ prompt: "Provide a dispaly name that describe the claim type" })
+                return vscode.window.showInputBox({ prompt: "Provide a display name that describe the claim type" })
                     .then(result => {
                         if (!result)
                             return Promise.reject('user cancelled');

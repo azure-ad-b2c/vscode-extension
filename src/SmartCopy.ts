@@ -68,7 +68,7 @@ export default class SmartCopy {
                                 nodeListToBeAdded[iNode].attributes[iAtt].nodeValue);
                         }
 
-                        // For ClaimsProvider, add the dispaly name element
+                        // For ClaimsProvider, add the display name element
                         if (nodeListToBeAdded[iNode].nodeName === "ClaimsProvider" && nodeListToBeAdded[iNode].getElementsByTagName("DisplayName").length >= 1) {
                             for (var iDisplayNameElement = 0; iDisplayNameElement < nodeListToBeAdded[iNode].childNodes.length; iDisplayNameElement++) {
 

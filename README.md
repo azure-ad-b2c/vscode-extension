@@ -182,7 +182,7 @@ You can add or remove environments, keys, and values to accommodate your needs. 
 }
 ```
 
-## Get B2C app ids
+## Get B2C application IDs
 
 This command retrieves application ids of applications used in IEF policies and stores them in the appSettings.json file. It retrives application ids for the IEF client and resource apps (used in the login-NonInteractive Technical Profile) and application id and object id of the B2C Extensions app (used in the AAD-Common Technical Profile if needed to to store custom claims as extension attributes in B2C). The command retrieves the values for each B2C tenant identified in the appSettings.json, as per the following example. You can then reference these values using Policy Settings build command described earlier. 
 
