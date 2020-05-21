@@ -28,7 +28,7 @@ export default class InsertCommands {
                     });
             })
             .then(() => {
-                return vscode.window.showInputBox({ prompt: "Provide a display name that describe the claim type" })
+                return vscode.window.showInputBox({ prompt: "Provide a display name that describes the claim type" })
                     .then(result => {
                         if (!result)
                             return Promise.reject('user cancelled');
@@ -244,7 +244,7 @@ export default class InsertCommands {
                 return;
             }
 
-            vscode.window.showInputBox({ prompt: "Type your instrumentation key" })
+            vscode.window.showInputBox({ prompt: "Type your Application Insights instrumentation key." })
                 .then(result => {
                     if (!result)
                         return Promise.reject('user cancelled');
