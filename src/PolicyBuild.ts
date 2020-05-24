@@ -8,7 +8,7 @@ import { promises } from "dns";
 
 export default class PolicyBuild {
 	static readonly fBuildValues = "appsettings.json";
-	static readonly  = "EnvironmentsFolder";
+	static readonly = "EnvironmentsFolder";
 	static Build() {
 		// Check if a folder is opened
 		if (
@@ -23,7 +23,8 @@ export default class PolicyBuild {
 
 		var rootPath: string = vscode.workspace.workspaceFolders[0].uri.fsPath;
 		var filePath = path.join(rootPath, this.fBuildValues);
-        console.debug(`Searching for buildvalues in ${filePath}`)
+		console.debug(`Searching for buildvalues in ${filePath}`);
+		
 		vscode.workspace
 			.findFiles(
 				new vscode.RelativePattern(
@@ -55,136 +56,123 @@ export default class PolicyBuild {
 						});
 				} else {
 					vscode.workspace.openTextDocument(filePath).then((doc) => {
-						var buildValues : Object = JSON.parse(doc.getText());
+						var buildValues: Object = JSON.parse(doc.getText());
 
-						let environmentsFolder = buildValues.hasOwnProperty(Consts.DefaultEnvironmentsFolder.key)
+						//Output-Folder
+						let environmentsFolder = buildValues.hasOwnProperty(Consts.DefaultEnvironmentsFolder.key) && 
+							!(!buildValues[Consts.DefaultEnvironmentsFolder.key]) //false for empty string, true for all else
 							? buildValues[Consts.DefaultEnvironmentsFolder.key]
-							: Consts.DefaultPoliciesFolder.value;
-						var environmentsFolderPath = environmentsFolder;
-						if( !path.isAbsolute(environmentsFolderPath)){
-							environmentsFolderPath = path.join(
-								rootPath, 
-								environmentsFolder
-							);
-						} else {
-							vscode.window.showErrorMessage(`"${Consts.DefaultEnvironmentsFolder.key}" in "${this.fBuildValues}" has to be a relative path, i.e. no leading slash`);
-							return;
-						}
+							: Consts.DefaultEnvironmentsFolder.value;
+						
+						let envresult = this.ResolveAndCreateFolder(environmentsFolder);
+						if (envresult instanceof Error){console.debug("instanceof Error!")}
 
-						// Ensure environments folder exists
-						if (!fs.existsSync(environmentsFolderPath)) {
-							fs.mkdirSync(environmentsFolderPath);
-						}
-
-						// Is location of policy-files specified?
-						let policiesFolder = buildValues.hasOwnProperty(Consts.DefaultPoliciesFolder.key)
+						// Policy-files-Folder
+						let policiesFolder = buildValues.hasOwnProperty(Consts.DefaultPoliciesFolder.key) && 
+							!(!buildValues[Consts.DefaultPoliciesFolder.key]) //false for empty string, true for all else
 							? buildValues[Consts.DefaultPoliciesFolder.key]
 							: Consts.DefaultPoliciesFolder.value;
 
-						// Absolute = 'C:\path\to\somewhere' || /path/to/somewhere
-						// Relative = path/to/somewhere
-						var policyFilesFolderPath = policiesFolder;
-						if( !path.isAbsolute(policiesFolder)){
-							policyFilesFolderPath = path.join(
-								rootPath,
-								policiesFolder
-							);	
-						}
+						let result = this.ResolveAndCreateFolder(policiesFolder);
+						if (result instanceof Error){console.debug("instanceof Error!")}
 						
-					vscode.workspace
-						.findFiles(
-							new vscode.RelativePattern(
-								policyFilesFolderPath,
-								"*.{xml}"
+						console.debug(`Searching for policies in ${policiesFolder}`);
+						console.debug(path.resolve(policiesFolder)); //TODO
+						vscode.workspace
+							.findFiles(
+								new vscode.RelativePattern(
+									policiesFolder,
+									"*.{xml}"
+								)
 							)
-						)
-						.then((uris) => {
-							let policyFiles: PolicyFile[] = [];
-							uris.forEach((uri) => {
-								if (uri.fsPath.indexOf("?") <= 0) {
-									var data = fs.readFileSync(uri.fsPath, "utf8");
-									policyFiles.push(
-										new PolicyFile(path.basename(uri.fsPath), data.toString())
-									);
-								}
-							});
+							.then((uris) => {
+								let policyFiles: PolicyFile[] = [];
+								uris.forEach((uri) => {
+									if (uri.fsPath.indexOf("?") <= 0) {
+										var data = fs.readFileSync(uri.fsPath, "utf8");
+										policyFiles.push(
+											new PolicyFile(path.basename(uri.fsPath), data.toString())
+										);
+									}
+								});
 
-							return policyFiles;
-						})
-						.then((policyFiles) => {
-							// Iterate through environments
-							buildValues["Environments"].forEach(function (entry) {
-								if (entry.PolicySettings == null) {
-									vscode.window.showErrorMessage(
-										"Can't generate '" +
+								return policyFiles;
+							})
+							.then((policyFiles) => {
+								// Iterate through environments
+								buildValues["Environments"].forEach(function (entry) {
+									if (entry.PolicySettings == null) {
+										vscode.window.showErrorMessage(
+											"Can't generate '" +
 											entry.Name +
 											"' environment policies. Error: Accepted PolicySettings element is missing. You may use old version of the appSettings.json file. For more information, see [App Settings](https://github.com/yoelhor/aad-b2c-vs-code-extension/blob/master/README.md#app-settings)"
-									);
-								} else {
-									var environmentRootPath = path.join(
-										environmentsFolderPath,
-										entry.Name
-									);
-
-									// Ensure environment folder exists
-									if (!fs.existsSync(environmentRootPath)) {
-										fs.mkdirSync(environmentRootPath);
-									}
-
-									// Iterate through the list of settings
-									policyFiles.forEach(function (file) {
-										var policContent = file.Data;
-
-										// Replace the tenant name
-										policContent = policContent.replace(
-											new RegExp("{Settings:Tenant" + "}", "g"),
-											entry.Tenant
+										);
+									} else {
+										var environmentRootPath = path.join(
+											environmentsFolder,
+											entry.Name
 										);
 
-										// Replace the rest of the policy settings
-										Object.keys(entry.PolicySettings).forEach((key) => {
+										// Ensure environment folder exists
+										if (!fs.existsSync(environmentRootPath)) {
+											fs.mkdirSync(environmentRootPath);
+										}
+
+										// Iterate through the list of settings
+										policyFiles.forEach(function (file) {
+											var policContent = file.Data;
+
+											// Replace the tenant name
 											policContent = policContent.replace(
-												new RegExp("{Settings:" + key + "}", "g"),
-												entry.PolicySettings[key]
+												new RegExp("{Settings:Tenant" + "}", "g"),
+												entry.Tenant
 											);
+
+											// Replace the rest of the policy settings
+											Object.keys(entry.PolicySettings).forEach((key) => {
+												policContent = policContent.replace(
+													new RegExp("{Settings:" + key + "}", "g"),
+													entry.PolicySettings[key]
+												);
+											});
+
+											// Save the  policy
+											fs.writeFile(
+												path.join(environmentRootPath, file.FileName),
+												policContent,
+												"utf8",
+												(err) => {
+													if (err) throw err;
+												}
+											);
+											console.debug(`Written policy to ${environmentRootPath}`);
 										});
 
-										// Save the  policy
-										fs.writeFile(
-											path.join(environmentRootPath, file.FileName),
-											policContent,
-											"utf8",
-											(err) => {
-												if (err) throw err;
-											}
+										vscode.window.showInformationMessage(
+											"You policies successfully exported and stored under the Environment folder."
 										);
-									});
-
-									vscode.window.showInformationMessage(
-										"You policies successfully exported and stored under the Environment folder."
-									);
-								}
+									}
+								});
 							});
-						});
 					});
 				}
 			});
 	}
-	
-	private static async isPathValid(Path: string): Promise<string | Error>{
-		
-		let ResolvedFolderPath = path.resolve(Path);
-		// Does folder, specified to contain policies, exist?
-		if ( !fs.existsSync(ResolvedFolderPath)) {
-			if(path.isAbsolute(ResolvedFolderPath)) {
-				vscode.window.showWarningMessage(`Path "${ResolvedFolderPath}" is absolute, and thus not resolved relative to the workspace.
-												Did you mean to have it relative? i.e no leading slash in "${Consts.DefaultEnvironmentsFolder.key}" in "${this.fBuildValues}"?`)
-			}
-			vscode.window.showErrorMessage(`Folder specified by "${Consts.DefaultPoliciesFolder.key}" in "${this.fBuildValues}" does not exist. 
-											Expecting folder at "${ResolvedFolderPath}"` );
-			return Error();
-		}
-		return ResolvedFolderPath;
+
+	static ResolveAndCreateFolder = (folderPath: string): (void | Error) => {
+		let rawPath = folderPath;
+		folderPath = path.resolve(folderPath);
+						if (!fs.existsSync(folderPath)) {
+							if (path.isAbsolute(rawPath)){
+								vscode.window.showWarningMessage(`Path "${rawPath}" is absolute, and thus not resolved relative to the workspace.
+												Did you mean to have it relative? i.e no leading slash in "${Consts.DefaultEnvironmentsFolder.key}" in "${PolicyBuild.fBuildValues}"?`)
+							}
+							vscode.window.showQuickPick(["Yes", "No"], { placeHolder: `The folder "${rawPath}" does not exist, do you want to create it?`})
+									.then((result) => {if (!result || result === "No") return Error;
+										fs.mkdirSync(folderPath);
+										console.debug(`Created folder ${folderPath}`);
+									});
+						}
 	}
 
 	static GetAllSettings(): string[] {

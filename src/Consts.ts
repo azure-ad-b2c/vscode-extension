@@ -1,4 +1,6 @@
 import { Metadata } from "./models/Metadata";
+import { version } from "vscode";
+import * as vscode from "vscode";
 
 export default class Consts {
   
@@ -682,8 +684,8 @@ export default class Consts {
     '  	<JourneyInsights TelemetryEngine="ApplicationInsights" InstrumentationKey="{instrumentationKey}" DeveloperMode="true" ClientEnabled="false" ServerEnabled="true" TelemetryVersion="1.0.0" />\r\n' +
     '  </UserJourneyBehaviors>\r\n';
   
-  static DefaultPoliciesFolder = {key: "PoliciesFolder", value: "/"}
-  static DefaultEnvironmentsFolder = {key: "EnvironmentsFolder", value: "Environments"}
+  static readonly DefaultPoliciesFolder = {key: "PoliciesFolder", value: vscode.workspace.workspaceFolders[0].uri};
+  static readonly DefaultEnvironmentsFolder = {key: "EnvironmentsFolder", value: "Environments"};
   static DefaultDeploymentSettings: string = `
 {
     "${Consts.DefaultPoliciesFolder.key}": "${Consts.DefaultPoliciesFolder.value}",
