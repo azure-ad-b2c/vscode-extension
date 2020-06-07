@@ -683,8 +683,8 @@ export default class Consts {
     '  <UserJourneyBehaviors>\r\n' +
     '  	<JourneyInsights TelemetryEngine="ApplicationInsights" InstrumentationKey="{instrumentationKey}" DeveloperMode="true" ClientEnabled="false" ServerEnabled="true" TelemetryVersion="1.0.0" />\r\n' +
     '  </UserJourneyBehaviors>\r\n';
-  
-  static readonly DefaultPoliciesFolder = {key: "PoliciesFolder", value: vscode.workspace.workspaceFolders[0].uri};
+
+  static readonly DefaultPoliciesFolder = {key: "PoliciesFolder", value: vscode.workspace.workspaceFolders[0].uri.fsPath.replace(/\\/g, "\\\\")};
   static readonly DefaultEnvironmentsFolder = {key: "EnvironmentsFolder", value: "Environments"};
   static DefaultDeploymentSettings: string = `
 {

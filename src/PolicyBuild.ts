@@ -145,7 +145,7 @@ export default class PolicyBuild {
 													if (err) throw err;
 												}
 											);
-											console.debug(`Written policy to ${environmentRootPath}`);
+											console.debug(`Written policy to ${environmentRootPath}\\${file.FileName}`);
 										});
 
 										vscode.window.showInformationMessage(
