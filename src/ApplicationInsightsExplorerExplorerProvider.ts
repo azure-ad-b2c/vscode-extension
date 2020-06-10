@@ -82,9 +82,12 @@ export default class ApplicationInsightsExplorerExplorerProvider implements vsco
 			this._onDidChangeTreeData.fire(null)
 		}
 
-		// Prepare the Application insights call
+     	// Prepare the Application insights call
 		var options = {
-			url: 'https://api.applicationinsights.io/v1/apps/' + config.id + '/events/traces?$top=' + config.maxRows + '&$orderby=timestamp desc&$select=id,timestamp,trace/message,customDimensions',
+			url: 'https://api.applicationinsights.io/v1/apps/' + config.id 
+			      + '/events/traces?timespan=PT'+config.duration+'H'
+			      +'&$top=' + config.maxRows 
+				  + '&$orderby=timestamp desc&$select=id,timestamp,trace/message,customDimensions',
 			headers: {
 				'X-API-Key': config.key
 			}
@@ -227,7 +230,13 @@ export default class ApplicationInsightsExplorerExplorerProvider implements vsco
 
 		return Promise.resolve(keys);
 	}
-
+	
+	//Convert duration into ISO8601 format.
+	formatDurationISO8601(duration: Number){
+		const dateTime = new Date()
+		return new Date(dateTime.getTime() - (1000 * 60 * 60 * Number(duration))).toISOString()
+       
+	}
 	formatDate(date: Date) {
 		return date.getFullYear().toString() + "-" + this.pad(date.getMonth()) + "-" + this.pad(date.getDate()) + " " + this.pad(date.getHours()) + ":" + this.pad(date.getMinutes()) + ":" + this.pad(date.getSeconds());
 	}
@@ -362,6 +371,8 @@ export default class ApplicationInsightsExplorerExplorerProvider implements vsco
 			config.update("id", message.id, configurationTarget);
 			config.update("key", message.key, configurationTarget);
 			config.update("maxRows", Number(message.maxRows), configurationTarget);
+			config.update("duration", Number(message.duration), configurationTarget);
+
 			this.panelConfig.dispose();
 
 			// Trick, place a delay and the values get loaded
@@ -430,6 +441,7 @@ export default class ApplicationInsightsExplorerExplorerProvider implements vsco
 				id: id.value,
 				key: key.value, 
 				maxRows: maxRows.value, 
+				duration: duration.value
 			})
 		}
 	</script>	
@@ -451,6 +463,10 @@ export default class ApplicationInsightsExplorerExplorerProvider implements vsco
 		<tr>
 			<td>The number of events to return</td>
 			<td><input type="number" id="maxRows" value="` + config.maxRows + `"  min="1" max="50"></td>
+		</tr>
+		<tr>
+			<td>The duration of events to return (in hours)</td>
+			<td><input type="number" id="duration" value="` + config.duration + `"  min="1" max="72"></td>
 		</tr>
 		<tr>
 			<td></td>
