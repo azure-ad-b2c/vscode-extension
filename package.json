@@ -2,7 +2,7 @@
     "name": "aadb2c",
     "displayName": "Azure AD B2C",
     "description": "Azure AD B2C custom policy extension",
-    "version": "1.2.84",
+    "version": "1.2.85",
     "publisher": "AzureADB2CTools",
     "engines": {
         "vscode": "^1.30.0"
@@ -228,7 +228,7 @@
                     "default": 30,
                     "description": "The number of events to return"
                 },
-                 "aadb2c.ai.duration": {
+                "aadb2c.ai.duration": {
                     "type": "integer",
                     "default": 12,
                     "description": "The duration of events to return (in hours)"
