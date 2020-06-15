@@ -163,7 +163,7 @@ export default class ApplicationInsightsExplorerExplorerProvider implements vsco
 			keys.push("Error|Loading...");
 		}
 		else if (this.AppInsightsItems.length == 0) {
-			keys.push("Error|Application Insights produced empty result from the last 12 hours.");
+			keys.push("Error|Application Insights produced empty results.");
 		}
 		else {
 			if (!parentElementKey) {
