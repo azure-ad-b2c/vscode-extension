@@ -1,5 +1,9 @@
 # Change Log
 
+## June 2020
+
+- Added option to configure hours for Azure Application Insights trace logs integration.
+
 ## May 2020
 
 - [Get B2C application IDs](https://github.com/azure-ad-b2c/vscode-extension#get-b2c-app-ids)
