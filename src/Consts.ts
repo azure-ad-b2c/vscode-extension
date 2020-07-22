@@ -1,5 +1,4 @@
 import { Metadata } from "./models/Metadata";
-import { version } from "vscode";
 import * as vscode from "vscode";
 
 export default class Consts {
