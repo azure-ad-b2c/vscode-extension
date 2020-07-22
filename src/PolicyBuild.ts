@@ -2,9 +2,6 @@ import * as vscode from "vscode";
 import fs = require("fs");
 import path = require("path");
 import Consts from "./Consts";
-import { constants } from "os";
-import { prependListener } from "cluster";
-import { promises } from "dns";
 
 export default class PolicyBuild {
 	static readonly fBuildValues = "appsettings.json";
