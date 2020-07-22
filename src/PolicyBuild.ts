@@ -1,155 +1,224 @@
-import * as vscode from 'vscode';
-import fs = require('fs');
-import path = require('path');
-import Consts from './Consts';
-export default class PolicBuild {
-    static Build() {
+import * as vscode from "vscode";
+import fs = require("fs");
+import path = require("path");
+import Consts from "./Consts";
+import { constants } from "os";
+import { prependListener } from "cluster";
+import { promises } from "dns";
 
+export default class PolicyBuild {
+	static readonly fBuildValues = "appsettings.json";
+	static readonly = "EnvironmentsFolder";
+	static Build() {
+		// Check if a folder is opened
+		if (
+			!vscode.workspace.workspaceFolders ||
+			vscode.workspace.workspaceFolders.length == 0
+		) {
+			vscode.window.showWarningMessage(
+				"To build a policy you need to open the policy folder in VS code"
+			);
+			return;
+		}
 
-        var rootPath: string;
-        // Check if a folder is opend
-        if ((!vscode.workspace.workspaceFolders) || (vscode.workspace.workspaceFolders.length == 0)) {
-            vscode.window.showWarningMessage("To build a policy you need to open the policy folder in VS code");
-            return;
-        }
+		var rootPath: string = vscode.workspace.workspaceFolders[0].uri.fsPath;
+		var filePath = path.join(rootPath, this.fBuildValues);
+		console.debug(`Searching for buildvalues in ${filePath}`);
+		
+		vscode.workspace
+			.findFiles(
+				new vscode.RelativePattern(
+					vscode.workspace.rootPath as string,
+					`${this.fBuildValues}`
+				)
+			)
+			.then((uris) => {
+				if (!uris || uris.length == 0) {
+					vscode.window
+						.showQuickPick(["Yes", "No"], {
+							placeHolder: `The ${this.fBuildValues} file is missing, do you want to create it?`,
+						})
+						.then((result) => {
+							if (!result || result === "No") return;
 
-        rootPath = vscode.workspace.workspaceFolders[0].uri.fsPath;
-        var filePath = path.join(rootPath, "appsettings.json");
+							// Create app settings file with default values
+							fs.writeFile(
+								filePath,
+								Consts.DefaultDeploymentSettings,
+								"utf8",
+								(err) => {
+									if (err) throw err;
+									vscode.workspace.openTextDocument(filePath).then((doc) => {
+										vscode.window.showTextDocument(doc);
+									});
+								}
+							);
+						});
+				} else {
+					vscode.workspace.openTextDocument(filePath).then((doc) => {
+						var buildValues: Object = JSON.parse(doc.getText());
 
-        // Check if appsettings.json is existed under for root folder
-        vscode.workspace.findFiles(new vscode.RelativePattern(vscode.workspace.rootPath as string, 'appsettings.json'))
-            .then((uris) => {
+						//Output-Folder
+						let environmentsFolder = buildValues.hasOwnProperty(Consts.DefaultEnvironmentsFolder.key) && 
+							!(!buildValues[Consts.DefaultEnvironmentsFolder.key]) //false for empty string, true for all else
+							? buildValues[Consts.DefaultEnvironmentsFolder.key]
+							: Consts.DefaultEnvironmentsFolder.value;
+						
+						let envresult = this.ResolveAndCreateFolder(environmentsFolder);
+						if (envresult instanceof Error){console.debug("instanceof Error!")}
 
-                if (!uris || uris.length == 0) {
-                    vscode.window.showQuickPick(["Yes", "No"], { placeHolder: 'The appsettings.json file is missing, do you want to create?' })
-                        .then(result => {
-                            if (!result || result === "No")
-                                return;
+						// Policy-files-Folder
+						let policiesFolder = buildValues.hasOwnProperty(Consts.DefaultPoliciesFolder.key) && 
+							!(!buildValues[Consts.DefaultPoliciesFolder.key]) //false for empty string, true for all else
+							? buildValues[Consts.DefaultPoliciesFolder.key]
+							: Consts.DefaultPoliciesFolder.value;
 
-                            // Create app settings file with default values
-                            fs.writeFile(filePath, Consts.DefaultDeploymentSettings, 'utf8', (err) => {
-                                if (err) throw err;
+						let result = this.ResolveAndCreateFolder(policiesFolder);
+						if (result instanceof Error){console.debug("instanceof Error!")}
+						
+						console.debug(`Searching for policies in ${policiesFolder}`);
+						console.debug(path.resolve(policiesFolder)); //TODO
+						vscode.workspace
+							.findFiles(
+								new vscode.RelativePattern(
+									policiesFolder,
+									"*.{xml}"
+								)
+							)
+							.then((uris) => {
+								let policyFiles: PolicyFile[] = [];
+								uris.forEach((uri) => {
+									if (uri.fsPath.indexOf("?") <= 0) {
+										var data = fs.readFileSync(uri.fsPath, "utf8");
+										policyFiles.push(
+											new PolicyFile(path.basename(uri.fsPath), data.toString())
+										);
+									}
+								});
 
-                                vscode.workspace.openTextDocument(filePath).then(doc => {
-                                    vscode.window.showTextDocument(doc);
-                                });
-                            });
-                        });
-                }
-                else {
+								return policyFiles;
+							})
+							.then((policyFiles) => {
+								// Iterate through environments
+								buildValues["Environments"].forEach(function (entry) {
+									if (entry.PolicySettings == null) {
+										vscode.window.showErrorMessage(
+											"Can't generate '" +
+											entry.Name +
+											"' environment policies. Error: Accepted PolicySettings element is missing. You may use old version of the appSettings.json file. For more information, see [App Settings](https://github.com/yoelhor/aad-b2c-vs-code-extension/blob/master/README.md#app-settings)"
+										);
+									} else {
+										var environmentRootPath = path.join(
+											environmentsFolder,
+											entry.Name
+										);
 
-                    // Read all policy files from the root directory
-                    vscode.workspace.findFiles(new vscode.RelativePattern(vscode.workspace.rootPath as string, '*.{xml}'))
-                        .then((uris) => {
-                            let policyFiles: PolicyFile[] = [];
-                            uris.forEach((uri) => {
-                                if (uri.fsPath.indexOf("?") <= 0) {
-                                    var data = fs.readFileSync(uri.fsPath, 'utf8');
-                                    policyFiles.push(new PolicyFile(path.basename(uri.fsPath), data.toString()))
-                                }
-                            });
+										// Ensure environment folder exists
+										if (!fs.existsSync(environmentRootPath)) {
+											fs.mkdirSync(environmentRootPath);
+										}
 
-                            return policyFiles;
-                        }).then((policyFiles) => {
+										// Iterate through the list of settings
+										policyFiles.forEach(function (file) {
+											var policContent = file.Data;
 
-                            // Get the app settings
-                            vscode.workspace.openTextDocument(filePath).then(doc => {
-                                var appSettings = JSON.parse(doc.getText());
-                                var environmentsRootPath = path.join(rootPath, "Environments");
+											// Replace the tenant name
+											policContent = policContent.replace(
+												new RegExp("{Settings:Tenant" + "}", "g"),
+												entry.Tenant
+											);
 
-                                // Ensure environments folder exists
-                                if (!fs.existsSync(environmentsRootPath)) {
-                                    fs.mkdirSync(environmentsRootPath);
-                                }
+											// Replace the rest of the policy settings
+											Object.keys(entry.PolicySettings).forEach((key) => {
+												policContent = policContent.replace(
+													new RegExp("{Settings:" + key + "}", "g"),
+													entry.PolicySettings[key]
+												);
+											});
 
-                                // Iterate through environments  
-                                appSettings.Environments.forEach(function (entry) {
+											// Save the  policy
+											fs.writeFile(
+												path.join(environmentRootPath, file.FileName),
+												policContent,
+												"utf8",
+												(err) => {
+													if (err) throw err;
+												}
+											);
+											console.debug(`Written policy to ${environmentRootPath}\\${file.FileName}`);
+										});
 
-                                    if (entry.PolicySettings == null) {
-                                        vscode.window.showErrorMessage("Can't generate '" + entry.Name + "' environment policies. Error: Accepted PolicySettings element is missing. You may use old version of the appSettings.json file. For more information, see [App Settings](https://github.com/yoelhor/aad-b2c-vs-code-extension/blob/master/README.md#app-settings)");
-                                    }
-                                    else {
-                                        var environmentRootPath = path.join(environmentsRootPath, entry.Name);
+										vscode.window.showInformationMessage(
+											"You policies successfully exported and stored under the Environment folder."
+										);
+									}
+								});
+							});
+					});
+				}
+			});
+	}
 
-                                        // Ensure environment folder exists
-                                        if (!fs.existsSync(environmentRootPath)) {
-                                            fs.mkdirSync(environmentRootPath);
-                                        }
+	static ResolveAndCreateFolder = (folderPath: string): (void | Error) => {
+		let rawPath = folderPath;
+		folderPath = path.resolve(folderPath);
+						if (!fs.existsSync(folderPath)) {
+							if (path.isAbsolute(rawPath)){
+								vscode.window.showWarningMessage(`Path "${rawPath}" is absolute, and thus not resolved relative to the workspace.
+												Did you mean to have it relative? i.e no leading slash in "${Consts.DefaultEnvironmentsFolder.key}" in "${PolicyBuild.fBuildValues}"?`)
+							}
+							vscode.window.showQuickPick(["Yes", "No"], { placeHolder: `The folder "${rawPath}" does not exist, do you want to create it?`})
+									.then((result) => {if (!result || result === "No") return Error;
+										fs.mkdirSync(folderPath);
+										console.debug(`Created folder ${folderPath}`);
+									});
+						}
+	}
 
-                                        // Iterate through the list of settings
-                                        policyFiles.forEach(function (file) {
+	static GetAllSettings(): string[] {
+		var items: string[] = [];
 
-                                            var policContent = file.Data;
+		var rootPath: string;
+		// Check if a folder is opend
+		if (
+			!vscode.workspace.workspaceFolders ||
+			vscode.workspace.workspaceFolders.length == 0
+		) {
+			return items;
+		}
 
-                                            // Replace the tenant name
-                                            policContent = policContent.replace(new RegExp("\{Settings:Tenant" + "\}", "g"), entry.Tenant);
+		// Get the app settings file path
+		rootPath = vscode.workspace.workspaceFolders[0].uri.fsPath;
+		var filePath = path.join(rootPath, this.fBuildValues);
 
-                                            // Replace the rest of the policy settings
-                                            Object.keys(entry.PolicySettings).forEach(key => {
-                                                policContent = policContent.replace(new RegExp("\{Settings:" + key + "\}", "g"), entry.PolicySettings[key]);
-                                            });
+		// Check if file exists
+		if (fs.existsSync(filePath)) {
+			var fileContent = fs.readFileSync(filePath, "utf8");
+			var appSettings = JSON.parse(fileContent);
 
-                                            // Save the  policy
-                                            fs.writeFile(path.join(environmentRootPath, file.FileName), policContent, 'utf8', (err) => {
-                                                if (err) throw err;
-                                            });
-                                        });
+			// Add the items from each environment
+			items.push("{Settings:Tenant}");
 
-                                        vscode.window.showInformationMessage("You policies successfully exported and stored under the Environment folder.");
-                                    }
-                                });
+			appSettings.Environments.forEach(function (entry) {
+				// Replace the rest of the policy settings
+				Object.keys(entry.PolicySettings).forEach((key) => {
+					if (items.indexOf("{Settings:" + key + "}") == -1) {
+						items.push("{Settings:" + key + "}");
+					}
+				});
+			});
+		}
 
-                            });
-                        });
-                }
-
-            });
-    };
-
-    static GetAllSettings(): string[] {
-
-        var items: string[] = [];
-
-        var rootPath: string;
-        // Check if a folder is opend
-        if ((!vscode.workspace.workspaceFolders) || (vscode.workspace.workspaceFolders.length == 0)) {
-            return items;
-        }
-
-        // Get the app settings file path
-        rootPath = vscode.workspace.workspaceFolders[0].uri.fsPath;
-        var filePath = path.join(rootPath, "appsettings.json");
-
-        // Check if file exists
-        if (fs.existsSync(filePath)) {
-            var fileContent = fs.readFileSync(filePath, "utf8");
-            var appSettings = JSON.parse(fileContent);
-
-            // Add the items from each environment
-            items.push('{Settings:Tenant}');
-
-            appSettings.Environments.forEach(function (entry) {
-
-                // Replace the rest of the policy settings
-                Object.keys(entry.PolicySettings).forEach(key => {
-
-                    if (items.indexOf('{Settings:' + key + '}') == (-1)) {
-                        items.push('{Settings:' + key + '}');
-                    }
-                });
-            });
-        }
-
-        return items;
-    }
+		return items;
+	}
 }
 
 export class PolicyFile {
-    public FileName: string;
-    public Data: string;
+	public FileName: string;
+	public Data: string;
 
-    constructor(fileName: string, data: string) {
-        this.FileName = fileName;
-        this.Data = data;
-    }
+	constructor(fileName: string, data: string) {
+		this.FileName = fileName;
+		this.Data = data;
+	}
 }

@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import PolicBuild from './PolicyBuild';
+import PolicyBuild from './PolicyBuild';
 import XmlHelper from './services/XmlHelper';
 import XsdHelper from './services/XsdHelper';
 import { Suggestion } from './models/Suggestion';
@@ -18,7 +18,7 @@ export default class CompletionProvider implements vscode.CompletionItemProvider
 
         if (XmlHelper.IsCurlyBrackets(document, position)) {
 
-            let list: string[] = PolicBuild.GetAllSettings();
+            let list: string[] = PolicyBuild.GetAllSettings();
 
             // Sort the array
             list.sort();
@@ -231,7 +231,7 @@ export default class CompletionProvider implements vscode.CompletionItemProvider
 
             // Add the app settigs keys
             if (addSettings) {
-                list = list.concat(PolicBuild.GetAllSettings());
+                list = list.concat(PolicyBuild.GetAllSettings());
             }
 
             // Sort the array
