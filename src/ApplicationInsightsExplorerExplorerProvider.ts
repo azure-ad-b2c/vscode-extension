@@ -82,12 +82,13 @@ export default class ApplicationInsightsExplorerExplorerProvider implements vsco
 			this._onDidChangeTreeData.fire(null)
 		}
 
-     	// Prepare the Application insights call
+		// Prepare the Application insights call
 		var options = {
-			url: 'https://api.applicationinsights.io/v1/apps/' + config.id 
-			      + '/events/traces?timespan=PT'+config.duration+'H'
-			      +'&$top=' + config.maxRows 
-				  + '&$orderby=timestamp desc&$select=id,timestamp,trace/message,customDimensions',
+			url: 'https://api.applicationinsights.io/v1/apps/' + config.id
+				+ '/events/traces?timespan=PT' + config.duration + 'H'
+				+ "&$filter=startswith(customDimensions/EventName, 'Journey Recorder')"
+				+ '&$top=' + config.maxRows
+				+ '&$orderby=timestamp desc&$select=id,timestamp,trace/message,customDimensions',
 			headers: {
 				'X-API-Key': config.key
 			}
@@ -97,13 +98,25 @@ export default class ApplicationInsightsExplorerExplorerProvider implements vsco
 		function callback(this: ApplicationInsightsExplorerExplorerProvider, error, response, body) {
 			if (!error && response.statusCode == 200) {
 				this.error = "";
+				var info = null;
 				body = body.replace('""', '"');
-				var info = JSON.parse(body);
+
+				try {
+					info = JSON.parse(body);
+				}
+				catch (e) {
+					console.log(e.message)
+					vscode.window.showErrorMessage(e.message);
+					this.error = "Cannot parse the json data.";
+					this._onDidChangeTreeData.fire(null);
+					return;
+				}
+
 
 				this.AppInsightsItems = [];
 				for (var i = 0; i < info.value.length; i++) {
 					var element = info.value[i];
-					
+
 					// Find the orchestration steps
 					var startIndex = 0, index, currentStep = '';
 					while ((index = element.trace.message.indexOf('CurrentStep', startIndex)) > -1) {
@@ -113,9 +126,8 @@ export default class ApplicationInsightsExplorerExplorerProvider implements vsco
 						currentStep += element.trace.message.substring(index + 1, endOfRaw).trim() + ', ';
 					}
 
-					if (currentStep.length > 1)
-					{
-						currentStep = "Step " + currentStep.substr(0, currentStep.length-2);
+					if (currentStep.length > 1) {
+						currentStep = "Step " + currentStep.substr(0, currentStep.length - 2);
 					}
 
 					this.AppInsightsItems.push(new AppInsightsItem(
@@ -225,17 +237,17 @@ export default class ApplicationInsightsExplorerExplorerProvider implements vsco
 					keys.sort();
 				}
 			}
-			
+
 		}
 
 		return Promise.resolve(keys);
 	}
-	
+
 	//Convert duration into ISO8601 format.
-	formatDurationISO8601(duration: Number){
+	formatDurationISO8601(duration: Number) {
 		const dateTime = new Date()
 		return new Date(dateTime.getTime() - (1000 * 60 * 60 * Number(duration))).toISOString()
-       
+
 	}
 	formatDate(date: Date) {
 		return date.getFullYear().toString() + "-" + this.pad(date.getMonth()) + "-" + this.pad(date.getDate()) + " " + this.pad(date.getHours()) + ":" + this.pad(date.getMinutes()) + ":" + this.pad(date.getSeconds());
