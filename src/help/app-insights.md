@@ -77,7 +77,9 @@ Azure AD B2C VS Code extension provides two different scopes for settings:
 - **Workspace Settings** - Settings stored inside your workspace and only apply when the workspace is opened (using VS Code **open folder**).
 
 1. From the **Azure AD B2C Trace** explorer, click on the **Settings** icon.
+
     ![Application Insights Settings](media/app-insights-settings.png)
+
 1. Provide the Azure Application Insights **id** and **key** and other settings
 1. Click **Save**
 
