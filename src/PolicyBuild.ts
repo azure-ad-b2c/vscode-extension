@@ -95,7 +95,7 @@ import * as vscode from 'vscode';
                                              });
                                          });
 
-                                          vscode.window.showInformationMessage("You policies successfully exported and stored under the Environment folder.");
+                                          vscode.window.showInformationMessage("Your policies successfully exported and stored under the Environment folder.");
                                      }
                                  });
 
