@@ -39,17 +39,15 @@ export default class PolicBuild {
                 }
                 else {
 
+                    var appSettings = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+
                     // Read all policy files from the root directory
-                    //vscode.workspace.findFiles(new vscode.RelativePattern(vscode.workspace.rootPath as string, '**/*.{xml}'))
-                    vscode.workspace.findFiles(new vscode.RelativePattern(vscode.workspace.rootPath as string, '**/{*.xml, !(Environments)/**/*.xml}'))
+                    vscode.workspace.findFiles(new vscode.RelativePattern(vscode.workspace.rootPath as string, '**/*.{xml}'), `**/${appSettings.EnvironmentsFolder}/**`)
                         .then((uris) => {
                             let policyFiles: PolicyFile[] = [];
                             uris.forEach((uri) => {
                                 if (uri.fsPath.indexOf("?") <= 0) {
                                     var data = fs.readFileSync(uri.fsPath, 'utf8');
-                                    //var relativePath = vscode.workspace.asRelativePath(uri.fsPath, false);
-                                    //var subFolder = relativePath.substring(0, relativePath.lastIndexOf('/'));
-
                                     policyFiles.push(new PolicyFile(uri.fsPath, data.toString()));
                                 }
                             });
