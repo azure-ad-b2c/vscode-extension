@@ -257,7 +257,7 @@
         "@types/mocha": "^5.2.5",
         "@types/node": "^10.14.14",
         "typescript": "^3.2.2",
-        "vscode": "^1.1.36"
+        "vscode": "^1.1.37"
     },
     "dependencies": {
         "adal-node": "^0.1.28",
