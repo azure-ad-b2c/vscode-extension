@@ -101,18 +101,20 @@ export default class PolicBuild {
                                                 if (!fs.existsSync(policyFolderPath)) {
                                                     fs.mkdirSync(policyFolderPath, {recursive: true});
                                                 } 
-                                            } 
+                                            }
+                                            
+                                            var filePath: string;
 
                                             // Save the  policy
                                             if (file.SubFolder) {
-                                                fs.writeFile(path.join(policyFolderPath, file.FileName), policContent, 'utf8', (err) => {
-                                                    if (err) throw err;
-                                                });
+                                                filePath = path.join(policyFolderPath, file.FileName);
                                             } else {
-                                                fs.writeFile(path.join(environmentRootPath, file.FileName), policContent, 'utf8', (err) => {
-                                                    if (err) throw err;
-                                                });
+                                                filePath = path.join(environmentRootPath, file.FileName);
                                             }
+                                            
+                                            fs.writeFile(filePath, policContent, 'utf8', (err) => {
+                                                if (err) throw err;
+                                            });
                                         });
 
                                         vscode.window.showInformationMessage("You policies successfully exported and stored under the Environment folder.");
