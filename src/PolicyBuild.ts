@@ -40,7 +40,8 @@ export default class PolicBuild {
                 else {
 
                     // Read all policy files from the root directory
-                    vscode.workspace.findFiles(new vscode.RelativePattern(vscode.workspace.rootPath as string, '**/*.{xml}'))
+                    //vscode.workspace.findFiles(new vscode.RelativePattern(vscode.workspace.rootPath as string, '**/*.{xml}'))
+                    vscode.workspace.findFiles(new vscode.RelativePattern(vscode.workspace.rootPath as string, '**/{*.xml, !(Environments)/**/*.xml}'))
                         .then((uris) => {
                             let policyFiles: PolicyFile[] = [];
                             uris.forEach((uri) => {
@@ -94,14 +95,24 @@ export default class PolicBuild {
                                             });
 
                                             // Check to see if the policy's subdirectory exists.
-                                            if (!fs.existsSync(file.SubFolder)) {
-                                                fs.mkdirSync(file.SubFolder);
+                                            if (file.SubFolder) {
+                                                var policyFolderPath = path.join(environmentRootPath, file.SubFolder);
+
+                                                if (!fs.existsSync(policyFolderPath)) {
+                                                    fs.mkdirSync(policyFolderPath, {recursive: true});
+                                                } 
                                             } 
 
                                             // Save the  policy
-                                            fs.writeFile(path.join(environmentRootPath, file.FileName), policContent, 'utf8', (err) => {
-                                                if (err) throw err;
-                                            });
+                                            if (file.SubFolder) {
+                                                fs.writeFile(path.join(policyFolderPath, file.FileName), policContent, 'utf8', (err) => {
+                                                    if (err) throw err;
+                                                });
+                                            } else {
+                                                fs.writeFile(path.join(environmentRootPath, file.FileName), policContent, 'utf8', (err) => {
+                                                    if (err) throw err;
+                                                });
+                                            }
                                         });
 
                                         vscode.window.showInformationMessage("You policies successfully exported and stored under the Environment folder.");
