@@ -6,6 +6,9 @@ To upload a policy you need to register a delegated permissions application. Lea
 
 ![Add MS Graph](media/ms-graph-app-permissions.png)
 
+Change the application authentication setting **Allow public client flows** to **Yes**. You can find this under "Authentication" -> "Advanced settings" in the menu.
+![Add MS Graph](media/allow-public-client-flows.png)
+
 After it's created, copy the Application ID: 
 
 ![Copy the application ID](media/ms-graph-app-id.png)
