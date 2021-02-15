@@ -35,6 +35,7 @@ export default class ApplicationInsightsExplorerExplorerProvider implements vsco
 	panel;
 	panelConfig;
 	error: String = "";
+	FirstException: String;
 
 	constructor(private context: vscode.ExtensionContext) {
 
@@ -208,12 +209,12 @@ export default class ApplicationInsightsExplorerExplorerProvider implements vsco
 						{
 							distinct.push(correlationId);
 
-							// Get the first data and time of this correlation id
+							// Get the first date and time of this correlation id
 							var minTimestamp;
 							for (var x = 0; x < this.AppInsightsItems.length; x++) {
 								if (this.AppInsightsItems[x].CorrelationId != correlationId) continue;
 								{
-									var timestamp = new Date(Date.parse(this.AppInsightsItems[x].Timestamp.toString()));
+									var timestamp = new Date(this.AppInsightsItems[x].Timestamp.toString());
 									if (!minTimestamp || timestamp < minTimestamp)
 										minTimestamp = timestamp;
 								}
@@ -229,7 +230,7 @@ export default class ApplicationInsightsExplorerExplorerProvider implements vsco
 						var correlationId = this.AppInsightsItems[i].CorrelationId;
 						if (elementValues[2] != correlationId) continue;
 						{
-							var timestamp = new Date(Date.parse(this.AppInsightsItems[i].Timestamp.toString()));
+							var timestamp = new Date(this.AppInsightsItems[i].Timestamp.toString());
 							var setp = this.AppInsightsItems[i].OrchestrationStep ? " (" + this.AppInsightsItems[i].OrchestrationStep + ")" : "";
 							keys.push("OrchestrationStep|" + this.formatDate(timestamp) + setp + "|" + this.AppInsightsItems[i].Id + "|" + this.AppInsightsItems[i].HasException);
 						}
@@ -322,7 +323,37 @@ export default class ApplicationInsightsExplorerExplorerProvider implements vsco
 		}
 	}
 
+	findException(obj) {
+
+		if (obj === null || typeof (obj) != 'object') {
+			return;
+		}
+
+		for (var k in obj) {
+
+			if (obj[k].Key == "Exception") {
+				this.FirstException = obj[k].Value.Message;
+			}
+			else if (obj[k].Kind == "FatalException") {
+				this.FirstException = obj[k].Content.Exception.Message;
+			}
+
+			this.findException(obj[k]);
+		}
+	}
+
 	getWebviewContent(item: AppInsightsItem) {
+
+		var json = JSON.parse(item.Data.toString());
+
+		this.FirstException = null;
+		this.findException(json);
+
+		if (this.FirstException)
+			this.FirstException = '<li><b style="color: red;">Exception</b>: ' + this.FirstException + '</li > ';
+		else
+			this.FirstException = '';
+
 		return `<!DOCTYPE html>
 	<html lang="en">
 	<head>
@@ -349,7 +380,8 @@ export default class ApplicationInsightsExplorerExplorerProvider implements vsco
   			<li><b>Correlation Id</b>: ` + item.CorrelationId + `</li>
 			<li><b>Orchestration Step</b>: ` + item.OrchestrationStep + `</li>
 			<li><b>App insights Id</b>: ` + item.Id + `</li>
-			<li><b>App insights timestamp</b>: ` + item.Timestamp + `</li>
+			<li><b>App insights timestamp</b>: ` + this.formatDate(new Date(item.Timestamp.toString())) + `</li>
+			` + this.FirstException + `
 		</ul>
 
 		<textarea type="text"  name="txtarea" style="width:100%;height:100vw">
@@ -358,6 +390,8 @@ export default class ApplicationInsightsExplorerExplorerProvider implements vsco
 		
 	</body>
 	</html>`;
+
+
 	}
 
 	settings() {
@@ -461,7 +495,7 @@ export default class ApplicationInsightsExplorerExplorerProvider implements vsco
 	<body>
 		<H1>` + title + `</h3>
 
-		<a href="https://github.com/yoelhor/aad-b2c-vs-code-extension/blob/master/src/help/app-insights.md">Click here to learn how to configure Application insights</a><br />&nbsp;
+		<a href="https://github.com/azure-ad-b2c/vscode-extension/blob/master/src/help/app-insights.md">Click here to learn how to configure Application insights</a><br />&nbsp;
 
 		<table>
 		<tr>

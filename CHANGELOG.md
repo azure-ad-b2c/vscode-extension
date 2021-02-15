@@ -2,7 +2,10 @@
 
 ## February 2021
 
+- Added the ability for xml files to be in nested folders.
 - New settings, `{Settings:Filename}`, `{Settings:PolicyFilename}`, `{Settings:Environment}`.
+- Application insights event date format fix.
+- Application insights event show the error message.
 
 ## June 2020
 
@@ -36,7 +39,7 @@
 
 ## October 2018
 
-- Adding Azure Application Insights trace log integration. Learn more [here](https://github.com/yoelhor/aad-b2c-vs-code-extension/blob/master/src/help/app-insights.md)
+- Adding Azure Application Insights trace log integration. Learn more [here](https://github.com/azure-ad-b2c/vscode-extension/blob/master/src/help/app-insights.md)
 - Go definition - VS code extension searches the definitions in all files in the working directory 
 - Go definition hierarchical search - VS code extension searches the definitions only in the parents policies 
 - Mouse over with link to all references
