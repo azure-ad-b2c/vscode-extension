@@ -36,6 +36,7 @@ export default class ApplicationInsightsExplorerExplorerProvider implements vsco
 	panelConfig;
 	error: String = "";
 	FirstException: String;
+	TechnicalProfiles: String;
 
 	constructor(private context: vscode.ExtensionContext) {
 
@@ -100,7 +101,13 @@ export default class ApplicationInsightsExplorerExplorerProvider implements vsco
 			if (!error && response.statusCode == 200) {
 				this.error = "";
 				var info = null;
-				body = body.replace('""', '"');
+				body = body.replace('""', '"')
+
+				// TBD Remove the Ellipsis
+				// body = body.replace(new RegExp('[^\x00-\x7F]', "g"), "")
+				// body = body.replace(new RegExp('[^[:ascii:]]', "g"), "")
+				// body = body.replace(/[^\x00-\x7F]/g, '')
+				// body = body.replace(/[\u{0080}-\u{FFFF}]/g, '')
 
 				try {
 					info = JSON.parse(body);
@@ -342,10 +349,35 @@ export default class ApplicationInsightsExplorerExplorerProvider implements vsco
 		}
 	}
 
+	findTechnicalProfiles(obj) {
+
+		if (obj === null || typeof (obj) != 'object') {
+			return;
+		}
+
+		for (var k in obj) {
+
+			if (obj[k].Key == "InitiatingClaimsExchange") {
+				this.TechnicalProfiles += '<li>' + obj[k].Value.TechnicalProfileId + ' (' + obj[k].Value.ProtocolProviderType + ')</li>';
+			}
+
+			this.findTechnicalProfiles(obj[k]);
+		}
+	}
+
 	getWebviewContent(item: AppInsightsItem) {
 
 		var json = JSON.parse(item.Data.toString());
 
+		// Get the list of technical profiles 
+		this.TechnicalProfiles = '';
+		this.findTechnicalProfiles(json);
+
+		if (this.TechnicalProfiles.length > 1) {
+			this.TechnicalProfiles = "<li>Technical profiles:<ol>" + this.TechnicalProfiles + "</ol></li>";
+		}
+
+		// Get the first exception
 		this.FirstException = null;
 		this.findException(json);
 
@@ -354,6 +386,7 @@ export default class ApplicationInsightsExplorerExplorerProvider implements vsco
 		else
 			this.FirstException = '';
 
+		// Return the HTML page
 		return `<!DOCTYPE html>
 	<html lang="en">
 	<head>
@@ -372,16 +405,22 @@ export default class ApplicationInsightsExplorerExplorerProvider implements vsco
 		body.vscode-high-contrast {
 			color: red;
 		}
+
+		li
+		{
+			line-height: 1.8;
+		}
 	</style>
 	</head>
 	<body>
 		<ul>
-  			<li><b>User Journey</b>: ` + item.UserJourney + `</li>
-  			<li><b>Correlation Id</b>: ` + item.CorrelationId + `</li>
-			<li><b>Orchestration Step</b>: ` + item.OrchestrationStep + `</li>
-			<li><b>App insights Id</b>: ` + item.Id + `</li>
-			<li><b>App insights timestamp</b>: ` + this.formatDate(new Date(item.Timestamp.toString())) + `</li>
+  			<li>User Journey: ` + item.UserJourney + `</li>
+  			<li>Correlation Id: ` + item.CorrelationId + `</li>
+			<li>Orchestration Step: ` + item.OrchestrationStep + `</li>
+			<li>App insights Id: ` + item.Id + `</li>
+			<li>App insights timestamp: ` + this.formatDate(new Date(item.Timestamp.toString())) + `</li>
 			` + this.FirstException + `
+			` + this.TechnicalProfiles + `
 		</ul>
 
 		<textarea type="text"  name="txtarea" style="width:100%;height:100vw">
