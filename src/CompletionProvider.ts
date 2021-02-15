@@ -140,7 +140,7 @@ export default class CompletionProvider implements vscode.CompletionItemProvider
             let addSettings: boolean = true;
 
             if (XmlHelper.IsCloseToAttribute("DefaultValue", linePrefix, position)) {
-                // Add the caims resolvers
+                // Add the claim resolvers
                 list = ['{Culture:LanguageName}', '{Culture:LCID}', '{Culture:RegionName}', '{Culture:RFC5646}',
                     '{Policy:PolicyId}', '{Policy:RelyingPartyTenantId}', '{Policy:TenantObjectId}',
                     '{Policy:TrustFrameworkTenantId}', '{OIDC:AuthenticationContextReferences}', '{OIDC:ClientId}',
@@ -200,7 +200,7 @@ export default class CompletionProvider implements vscode.CompletionItemProvider
                     return list.concat(XmlHelper.GetElementIDsByNodeName('ContentDefinition', files));
                 }).then(items => { return items });
             }
-            // Get the list of claims exchnage
+            // Get the list of claims exchange
             else if (XmlHelper.IsInNodeAndCloseToAttribute("ClaimsExchange", "TargetClaimsExchangeId", linePrefix, position) ||
                 XmlHelper.IsInNodeAndCloseToAttribute("ClaimsExchange", "ValidationClaimsExchangeId", linePrefix, position)) {
                 addSettings = false;
@@ -229,7 +229,7 @@ export default class CompletionProvider implements vscode.CompletionItemProvider
                 return completionItems;
             }
 
-            // Add the app settigs keys
+            // Add the app settings keys
             if (addSettings) {
                 list = list.concat(PolicyBuild.GetAllSettings());
             }

@@ -185,7 +185,7 @@ export default class PolicyUpload {
             let promise = new Promise((resolve, reject) => {
                 try {
                     request(options, (error, response) => {
-                        //B2C occasionally returnes 201 code instead of 200 in case of successful upload
+                        //B2C occasionally returns 201 code instead of 200 in case of successful upload
                         if (!error && [200, 201].includes(response.statusCode)) {
                             resolve(response);
                             cb(null, response);

@@ -85,11 +85,20 @@ export default class PolicBuild {
                                             var policContent = file.Data;
 
                                             // Replace the tenant name
-                                            policContent = policContent.replace(new RegExp("\{Settings:Tenant" + "\}", "g"), entry.Tenant);
+                                            policContent = policContent.replace(new RegExp("\{Settings:Tenant\}", "gi"), entry.Tenant);
+
+                                            // Replace the file name
+                                            policContent = policContent.replace(new RegExp("\{Settings:Filename\}", "gi"), file.FileName.replace(/\.[^/.]+$/, ""));
+                                            
+                                            // Replace the file name and remove the policy prefix
+                                            policContent = policContent.replace(new RegExp("\{Settings:PolicyFilename\}", "gi"), file.FileName.replace(/\.[^/.]+$/, "").replace(new RegExp("B2C_1A_",  "g"), ""),  );
+                                            
+                                            // Replace the environment name
+                                            policContent = policContent.replace(new RegExp("\{Settings:Environment\}", "gi"), entry.Name );
 
                                             // Replace the rest of the policy settings
                                             Object.keys(entry.PolicySettings).forEach(key => {
-                                                policContent = policContent.replace(new RegExp("\{Settings:" + key + "\}", "g"), entry.PolicySettings[key]);
+                                                policContent = policContent.replace(new RegExp("\{Settings:" + key + "\}", "gi"), entry.PolicySettings[key]);
                                             });
 
                                             // Check to see if the policy's subdirectory exists.
@@ -97,10 +106,10 @@ export default class PolicBuild {
                                                 var policyFolderPath = path.join(environmentRootPath, file.SubFolder);
 
                                                 if (!fs.existsSync(policyFolderPath)) {
-                                                    fs.mkdirSync(policyFolderPath, {recursive: true});
-                                                } 
+                                                    fs.mkdirSync(policyFolderPath, { recursive: true });
+                                                }
                                             }
-                                            
+
                                             var filePath: string;
 
                                             // Save the  policy
@@ -109,13 +118,13 @@ export default class PolicBuild {
                                             } else {
                                                 filePath = path.join(environmentRootPath, file.FileName);
                                             }
-                                            
+
                                             fs.writeFile(filePath, policContent, 'utf8', (err) => {
                                                 if (err) throw err;
                                             });
                                         });
 
-                                        vscode.window.showInformationMessage("You policies successfully exported and stored under the Environment folder.");
+                                        vscode.window.showInformationMessage("Your policies successfully exported and stored under the Environment folder.");
                                     }
                                 });
 
@@ -131,7 +140,7 @@ export default class PolicBuild {
         var items: string[] = [];
 
         var rootPath: string;
-        // Check if a folder is opend
+        // Check if a folder is opened
         if ((!vscode.workspace.workspaceFolders) || (vscode.workspace.workspaceFolders.length == 0)) {
             return items;
         }
@@ -145,9 +154,13 @@ export default class PolicBuild {
             var fileContent = fs.readFileSync(filePath, "utf8");
             var appSettings = JSON.parse(fileContent);
 
-            // Add the items from each environment
+            // Add static settings
             items.push('{Settings:Tenant}');
+            items.push('{Settings:Filename}');
+            items.push('{Settings:PolicyFilename}');
+            items.push('{Settings:Environment}');
 
+            // Add the items from each environment
             appSettings.Environments.forEach(function (entry) {
 
                 // Replace the rest of the policy settings
@@ -169,13 +182,13 @@ export class PolicyFile {
     public Data: string;
     public SubFolder: string;
 
-    constructor(fileName: string, data:string) {
+    constructor(fileName: string, data: string) {
         this.Data = data;
         this.FileName = path.basename(fileName);
         this.SubFolder = this.GetSubFolder(fileName);
     }
 
-    GetSubFolder(filePath: string) : string {
+    GetSubFolder(filePath: string): string {
         var relativePath = vscode.workspace.asRelativePath(filePath, false);
         var subFolder = relativePath.substring(0, relativePath.lastIndexOf('/'));
 

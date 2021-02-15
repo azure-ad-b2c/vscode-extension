@@ -1,5 +1,9 @@
 # Change Log
 
+## February 2021
+
+- New settings, `{Settings:Filename}`, `{Settings:PolicyFilename}`, `{Settings:Environment}`.
+
 ## June 2020
 
 - Added option to configure hours for Azure Application Insights trace logs integration.

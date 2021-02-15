@@ -91,6 +91,7 @@ Collect logs from Azure AD B2C and diagnose problems with the Azure AD B2C VS Co
 Allows you to manage the values of your Azure AD B2C environments. When you execute the **B2C Policy build** command, the VS Code extension finds and replaces the values of your settings with the ones configured in the policy file, and creates a directory that contains all of your policy files (after the replacement). In the following example, the extension replaces the keys with the values configured in the `appsettings.json` file:
 
 - `{Settings:Tenant}`
+- `{Settings:IdentityExperienceFramework}`
 - `{Settings:ProxyIdentityExperienceFrameworkAppId}`
 - `{Settings:FacebookAppId}`
 
@@ -106,6 +107,16 @@ The configuration `appsettings.json` file contains the keys with their values fo
 To build your policy, type `Ctrl+Shift+P`, which brings up the Command Palette. From here, type `B2C` and select **B2C Policy Build**. You have access to all of the B2C functionality of VS Code, including keyboard shortcuts like `Ctrl+Shift+5`.
 
 ![policy build](media/policy-build.png)
+
+In your policy, you can use one of the following settings:
+
+|Key  |Description  |
+|---------|---------|
+|`{Settings:Tenant}`| The tenant name|
+|`{Settings:Filename}`|The policy file name, without the file extension.|
+|`{Settings:PolicyFilename}` | The policy name, without the file extension. Also truncates the B2C_1A_ prefix if included.|
+|`{Settings:Environment}`| The name of the environment.|
+|`{Settings:<Name>}`| A custom setting name, such as `{Settings:FacebookAppId}`. |
 
 The first time you run the **B2C Policy build** command, the VS code extension lets you create the `appsettings.json` file with a default set of environments, keys, and values:
 

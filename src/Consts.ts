@@ -695,6 +695,7 @@ export default class Consts {
             "Production": false,
             "Tenant": "your-dev-tenant.onmicrosoft.com",
             "PolicySettings" : {
+                "IdentityExperienceFrameworkAppId": "Your dev environment AD app Id",
                 "ProxyIdentityExperienceFrameworkAppId": "Your dev environment AD Proxy app Id",
                 "FacebookAppId": "0"
             }
@@ -704,6 +705,7 @@ export default class Consts {
             "Production": false,
             "Tenant": "your-test-tenant.onmicrosoft.com",
             "PolicySettings" : {
+                "IdentityExperienceFrameworkAppId": "Your test environment AD app Id",
                 "ProxyIdentityExperienceFrameworkAppId": "Your AD test environment Proxy app Id",
                 "FacebookAppId": "0"
             }
@@ -713,6 +715,7 @@ export default class Consts {
             "Production": false,
             "Tenant": "your-qa-tenant.onmicrosoft.com",
             "PolicySettings" : {
+                "IdentityExperienceFrameworkAppId": "Your QA environment AD app Id",
                 "ProxyIdentityExperienceFrameworkAppId": "Your QA environment AD Proxy app Id",
                 "FacebookAppId": "0"
             }
@@ -722,6 +725,7 @@ export default class Consts {
             "Production": true,
             "Tenant": "your-production-tenant.onmicrosoft.com",
             "PolicySettings" : {
+                "IdentityExperienceFrameworkAppId": "Your QA environment AD app Id",
                 "ProxyIdentityExperienceFrameworkAppId": "Your production environment AD Proxy app Id",
                 "FacebookAppId": "0"
             }
