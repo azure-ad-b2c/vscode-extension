@@ -61,9 +61,9 @@ export default class CustomPolicyExplorerProvider implements vscode.TreeDataProv
 	}
 
 
-    /*getParent(parentElementKey?: String): String {
-        return '';
-    }*/
+	/*getParent(parentElementKey?: String): String {
+		return '';
+	}*/
 
 	getElementByTagName(tagName: string) {
 		var nsAttr = this.xmlDoc.getElementsByTagName(tagName);
@@ -78,19 +78,36 @@ export default class CustomPolicyExplorerProvider implements vscode.TreeDataProv
 		const keys: String[] = [];
 
 		if (!parentElementKey) {
-			keys.push("root|UserJourney|User Journeys|" + this.getElementByTagName("UserJourneys"));
-			keys.push("root|ClaimsProvider|Claims Providers|" + this.getElementByTagName("ClaimsProviders"));
+			if (this.getElementByTagName("UserJourneys"))
+				keys.push("root|UserJourney|User Journeys|" + this.getElementByTagName("UserJourneys"));
+
+			if (this.getElementByTagName("SubJourneys"))
+				keys.push("root|SubJourney|Sub Journeys|" + this.getElementByTagName("SubJourneys"));
+
+			if (this.getElementByTagName("ClaimsProviders"))
+				keys.push("root|ClaimsProvider|Claims Providers|" + this.getElementByTagName("ClaimsProviders"));
+
 			keys.push("root|TechnicalProfile|Technical Profiles");
-			keys.push("root|ClaimType|Claim Types|" + this.getElementByTagName("ClaimsSchema"));
-			keys.push("root|ClaimsTransformation|Claims Transformations|" + this.getElementByTagName("ClaimsTransformations"));
-			keys.push("root|ContentDefinition|Content Definitions|" + this.getElementByTagName("ContentDefinitions"));
-			keys.push("root|Predicate|Predicates|" + this.getElementByTagName("Predicates"));
+
+			if (this.getElementByTagName("ClaimsSchema"))
+				keys.push("root|ClaimType|Claim Types|" + this.getElementByTagName("ClaimsSchema"));
+
+			if (this.getElementByTagName("ClaimsTransformations"))
+				keys.push("root|ClaimsTransformation|Claims Transformations|" + this.getElementByTagName("ClaimsTransformations"));
+
+			if (this.getElementByTagName("ContentDefinitions"))
+				keys.push("root|ContentDefinition|Content Definitions|" + this.getElementByTagName("ContentDefinitions"));
+
+			if (this.getElementByTagName("Predicates"))
+				keys.push("root|Predicate|Predicates|" + this.getElementByTagName("Predicates"));
 		}
 		else {
 			const elementValues: String[] = parentElementKey.split("|");
 
 			if (elementValues[0] == "root") {
 				var nsAttr = this.xmlDoc.getElementsByTagName(elementValues[1]);
+
+
 
 				var i: number;
 				for (i = 0; i < nsAttr.length; i++) {

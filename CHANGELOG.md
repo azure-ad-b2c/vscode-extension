@@ -6,7 +6,7 @@
 - New settings, `{Settings:Filename}`, `{Settings:PolicyFilename}`, `{Settings:Environment}`.
 - Application insights event date format fix.
 - Application insights event shows the error message, and technical profiles.
-- Addded the sub journeys to the policy explorer.
+- Policy explorer hows only nodes with elements. Sub journey has been added to the policy explorer.
 
 ## June 2020
 
