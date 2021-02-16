@@ -35,8 +35,6 @@ export default class ApplicationInsightsExplorerExplorerProvider implements vsco
 	panel;
 	panelConfig;
 	error: String = "";
-	FirstException: String;
-	TechnicalProfiles: String;
 
 	constructor(private context: vscode.ExtensionContext) {
 
@@ -330,61 +328,51 @@ export default class ApplicationInsightsExplorerExplorerProvider implements vsco
 		}
 	}
 
-	findException(obj) {
+	getWebviewContent(appInsightsItem: AppInsightsItem) {
 
-		if (obj === null || typeof (obj) != 'object') {
-			return;
-		}
-
-		for (var k in obj) {
-
-			if (obj[k].Key == "Exception") {
-				this.FirstException = obj[k].Value.Message;
-			}
-			else if (obj[k].Kind == "FatalException") {
-				this.FirstException = obj[k].Content.Exception.Message;
-			}
-
-			this.findException(obj[k]);
-		}
-	}
-
-	findTechnicalProfiles(obj) {
-
-		if (obj === null || typeof (obj) != 'object') {
-			return;
-		}
-
-		for (var k in obj) {
-
-			if (obj[k].Key == "InitiatingClaimsExchange") {
-				this.TechnicalProfiles += '<li>' + obj[k].Value.TechnicalProfileId + ' (' + obj[k].Value.ProtocolProviderType + ')</li>';
-			}
-
-			this.findTechnicalProfiles(obj[k]);
-		}
-	}
-
-	getWebviewContent(item: AppInsightsItem) {
-
-		var json = JSON.parse(item.Data.toString());
+		var json = JSON.parse(appInsightsItem.Data.toString());
+		var jp = require('jsonpath'); //https://jsonpath.com/ and https://www.npmjs.com/package/jsonpath
 
 		// Get the list of technical profiles 
-		this.TechnicalProfiles = '';
-		this.findTechnicalProfiles(json);
-
-		if (this.TechnicalProfiles.length > 1) {
-			this.TechnicalProfiles = "<li>Technical profiles:<ol>" + this.TechnicalProfiles + "</ol></li>";
+		var collection = jp.query(json, '$..Values[?(@.Key=="InitiatingClaimsExchange")]');
+		var technicalProfiles = ''
+		for (var i in collection) {
+			technicalProfiles += '<li>' + collection[i].Value.TechnicalProfileId + ' (' + collection[i].Value.ProtocolProviderType + ')</li>';
 		}
 
-		// Get the first exception
-		this.FirstException = null;
-		this.findException(json);
+		if (technicalProfiles.length > 1) {
+			technicalProfiles = "<li>Technical profiles:<ol>" + technicalProfiles + "</ol></li>";
+		}
 
-		if (this.FirstException)
-			this.FirstException = '<li><b style="color: red;">Exception</b>: ' + this.FirstException + '</li > ';
-		else
-			this.FirstException = '';
+		// Get the list of validation technical profiles 
+		collection = jp.query(json, '$..Values[?(@.Key=="TechnicalProfileId")]');
+		var validationTechnicalProfiles = ''
+		for (var i in collection) {
+			validationTechnicalProfiles += '<li>' + collection[i].Value + '</li>';
+		}
+
+		if (validationTechnicalProfiles.length > 1) {
+			validationTechnicalProfiles = "<li>Validation technical profiles:<ol>" + validationTechnicalProfiles + "</ol></li>";
+		}
+
+		// Get the fatal exceptions
+		collection = jp.query(json, '$..Exception');
+
+		var exceptions = ''
+		for (var i in collection) {
+			exceptions += '<li>' + collection[i].Message + '</li>';
+		}
+
+		// Get the exceptions
+		collection = jp.query(json, '$..Values[?(@.Key=="Exception")].Value');
+
+		for (var i in collection) {
+			exceptions += '<li>' + collection[i].Message + '</li>';
+		}
+
+		if (exceptions.length > 1) {
+			exceptions = "<li><span style='color: red;'>Exceptions:</span><ol>" + exceptions + "</ol></li>";
+		}
 
 		// Return the HTML page
 		return `<!DOCTYPE html>
@@ -414,17 +402,18 @@ export default class ApplicationInsightsExplorerExplorerProvider implements vsco
 	</head>
 	<body>
 		<ul>
-  			<li>User Journey: ` + item.UserJourney + `</li>
-  			<li>Correlation Id: ` + item.CorrelationId + `</li>
-			<li>Orchestration Step: ` + item.OrchestrationStep + `</li>
-			<li>App insights Id: ` + item.Id + `</li>
-			<li>App insights timestamp: ` + this.formatDate(new Date(item.Timestamp.toString())) + `</li>
-			` + this.FirstException + `
-			` + this.TechnicalProfiles + `
+  			<li>User Journey: ` + appInsightsItem.UserJourney + `</li>
+  			<li>Correlation Id: ` + appInsightsItem.CorrelationId + `</li>
+			<li>Orchestration Step: ` + appInsightsItem.OrchestrationStep.replace("Step", "") + `</li>
+			<li>App insights Id: ` + appInsightsItem.Id + `</li>
+			<li>App insights timestamp: ` + this.formatDate(new Date(appInsightsItem.Timestamp.toString())) + `</li>
+			` + exceptions + `
+			` + technicalProfiles + `
+			` + validationTechnicalProfiles + `
 		</ul>
 
 		<textarea type="text"  name="txtarea" style="width:100%;height:100vw">
-		` + item.Data + `
+		` + appInsightsItem.Data + `
 		</textarea>
 		
 	</body>
