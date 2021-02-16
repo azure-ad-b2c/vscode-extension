@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
 import { ConfigurationTarget } from 'vscode';
+const clipboardy = require('clipboardy');
 
 class AppInsightsItem {
 	Id: String;
@@ -308,7 +309,16 @@ export default class ApplicationInsightsExplorerExplorerProvider implements vsco
 			if (id != this.AppInsightsItems[i].Id) continue;
 			{
 				if (!this.panel)
-					this.panel = vscode.window.createWebviewPanel('ApplicationInsightsData', "Application Insights Explorer", vscode.ViewColumn.One, {});
+					this.panel = vscode.window.createWebviewPanel('ApplicationInsightsData', "Application Insights Explorer", vscode.ViewColumn.One, {
+						// Enable scripts in the webview
+						enableScripts: true
+					});
+
+				// Handle messages from the webview
+				this.panel.webview.onDidReceiveMessage(message => {
+					clipboardy.writeSync(message.text);
+
+				}, undefined, undefined);
 
 				this.panel.onDidDispose(() => {
 					// When the panel is closed, cancel any future updates to the webview content
@@ -399,6 +409,16 @@ export default class ApplicationInsightsExplorerExplorerProvider implements vsco
 			line-height: 1.8;
 		}
 	</style>
+	<script>
+		function copyJson() {
+			const vscode = acquireVsCodeApi();
+			const json = document.getElementById('json');
+
+			vscode.postMessage({
+				text: json.innerText
+			});
+		}
+	</script>	
 	</head>
 	<body>
 		<ul>
@@ -411,7 +431,7 @@ export default class ApplicationInsightsExplorerExplorerProvider implements vsco
 			` + technicalProfiles + `
 			` + validationTechnicalProfiles + `
 		</ul>
-
+		<input type="button" onclick="copyJson()" id="copyJson" value="Copy">
 		<pre><code id='json'>` + appInsightsItem.Data + `</code></pre>
 	</body>
 	</html>`;
@@ -429,6 +449,7 @@ export default class ApplicationInsightsExplorerExplorerProvider implements vsco
 
 		// Handle messages from the webview
 		this.panelConfig.webview.onDidReceiveMessage(message => {
+
 
 			// Load the configuration
 			var config = vscode.workspace.getConfiguration('aadb2c.ai');
