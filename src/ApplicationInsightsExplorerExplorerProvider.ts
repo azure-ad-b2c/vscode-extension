@@ -412,10 +412,7 @@ export default class ApplicationInsightsExplorerExplorerProvider implements vsco
 			` + validationTechnicalProfiles + `
 		</ul>
 
-		<textarea type="text"  name="txtarea" style="width:100%;height:100vw">
-		` + appInsightsItem.Data + `
-		</textarea>
-		
+		<pre><code id='json'>` + appInsightsItem.Data + `</code></pre>
 	</body>
 	</html>`;
 
