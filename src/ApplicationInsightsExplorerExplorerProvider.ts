@@ -408,6 +408,9 @@ export default class ApplicationInsightsExplorerExplorerProvider implements vsco
 		{
 			line-height: 1.8;
 		}
+		.highlight {
+			background-color: #ffff66;
+		  }
 	</style>
 	<script>
 		function copyJson() {
@@ -418,6 +421,19 @@ export default class ApplicationInsightsExplorerExplorerProvider implements vsco
 				text: json.innerText
 			});
 		}
+		function highlight() {
+			
+			var json = document.getElementById("json");
+			var jsonHidden = document.getElementById("jsonHidden");
+			var searchbox = document.getElementById("searchbox");
+						
+			json.innerHTML = jsonHidden.innerText.replace(new RegExp(searchbox.value.trim(), "gi"), "<span id='highlight' class='highlight'>" + searchbox.value.trim() + "</span>")
+
+			var elmnts = document.querySelectorAll("#highlight");
+
+			if (elmnts.length > 0)
+				elmnts[0].scrollIntoView();
+		  }
 	</script>	
 	</head>
 	<body>
@@ -431,8 +447,11 @@ export default class ApplicationInsightsExplorerExplorerProvider implements vsco
 			` + technicalProfiles + `
 			` + validationTechnicalProfiles + `
 		</ul>
-		<input type="button" onclick="copyJson()" id="copyJson" value="Copy">
+		<input type="button" onclick="copyJson()" id="copyJson" value="Copy" />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+		<input type="text" id="searchbox" />
+		<input type="button" onclick="highlight()" value="Search" />
 		<pre><code id='json'>` + appInsightsItem.Data + `</code></pre>
+		<pre><code id='jsonHidden' style='display: none;'>` + appInsightsItem.Data + `</code></pre>
 	</body>
 	</html>`;
 
