@@ -333,6 +333,7 @@ export default class ApplicationInsightsExplorerExplorerProvider implements vsco
 						vscode.commands.executeCommand('setContext', 'CustomPolicyExplorerEnabled', true);
 					}
 				})
+
 				break;
 			}
 		}
@@ -427,6 +428,12 @@ export default class ApplicationInsightsExplorerExplorerProvider implements vsco
 			claimsString = "<li>Claims:<ul>" + claimsString + "</ul></li>";
 		}
 
+		// Get Journey is completed
+		var journeyIsCompleted = 'No';
+		collection = jp.query(json, '$..Values[?(@.Key=="JourneyCompleted")]');
+		if (collection.length > 0)
+		journeyIsCompleted = "Yes";
+
 		// Return the HTML page
 		return `<!DOCTYPE html>
 	<html lang="en">
@@ -484,9 +491,10 @@ export default class ApplicationInsightsExplorerExplorerProvider implements vsco
 		<ul>
   			<li>User Journey: ` + appInsightsItem.UserJourney + `</li>
   			<li>Correlation Id: ` + appInsightsItem.CorrelationId + `</li>
-			<li>Orchestration Step: ` + appInsightsItem.OrchestrationStep.replace("Step", "") + `</li>
 			<li>App insights Id: ` + appInsightsItem.Id + `</li>
 			<li>App insights timestamp: ` + this.formatDate(new Date(appInsightsItem.Timestamp.toString())) + `</li>
+			<li>User journey is completed: ` + journeyIsCompleted + `</li>
+			<li>Orchestration steps: ` + appInsightsItem.OrchestrationStep.replace("Step", "") + `</li>
 			` + exceptions + `
 			` + technicalProfiles + `
 			` + validationTechnicalProfiles + `
