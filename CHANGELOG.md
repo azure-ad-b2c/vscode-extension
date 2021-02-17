@@ -5,7 +5,7 @@
 - Added the ability for xml files to be in nested folders.
 - New settings, `{Settings:Filename}`, `{Settings:PolicyFilename}`, `{Settings:Environment}`.
 - Application insights event date format fix.
-- Application insights event shows the error message, and technical profiles.
+- Application insights event shows the error message, technical profiles, validation technical profiles, and claims.
 - Policy explorer hows only nodes with elements. Sub journey has been added to the policy explorer.
 
 ## June 2020

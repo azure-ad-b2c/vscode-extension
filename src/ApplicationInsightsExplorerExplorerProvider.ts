@@ -384,6 +384,49 @@ export default class ApplicationInsightsExplorerExplorerProvider implements vsco
 			exceptions = "<li><span style='color: red;'>Exceptions:</span><ol>" + exceptions + "</ol></li>";
 		}
 
+		// Get the claims
+		var normalizedJson = JSON.parse(appInsightsItem.Data.toString().replace(new RegExp('Complex\-CLMS', "g"), "ComplexCLMS"))
+		collection = jp.query(normalizedJson, '$..ComplexCLMS');
+
+		var claims = {};
+		for (var i in collection) {
+			var p = collection[i];
+
+			for (var key of Object.keys(p)) {
+				console.log(key + " -> " + p[key])
+
+				// Check if the claim isn't in the collection
+				if (!claims[key]) {
+					// Add a claim to the collection. And set the first element in the values collection
+					claims[key] = [p[key]];
+				}
+				else {
+					// Get the last element in the claim's values collection
+					var lastObject = claims[key].length - 1;
+
+					// If the last element value isn't the same, then add the new value to the values collection
+					if (claims[key][lastObject] != p[key]) {
+						claims[key][lastObject + 1] = p[key];
+					}
+				}
+			}
+		}
+
+		var claimsString = '';
+		for (var key of Object.keys(claims)) {
+			claimsString += "<li>" + key + ": ";
+			for (var i in claims[key]) {
+				claimsString += claims[key][i] + " => "
+			}
+			if (claimsString.length > 4)
+				claimsString = claimsString.slice(0, -4);
+			claimsString += "</li>";
+		}
+
+		if (claimsString.length > 1) {
+			claimsString = "<li>Claims:<ul>" + claimsString + "</ul></li>";
+		}
+
 		// Return the HTML page
 		return `<!DOCTYPE html>
 	<html lang="en">
@@ -437,6 +480,7 @@ export default class ApplicationInsightsExplorerExplorerProvider implements vsco
 	</script>	
 	</head>
 	<body>
+		  <h1>Application Insights</h1>
 		<ul>
   			<li>User Journey: ` + appInsightsItem.UserJourney + `</li>
   			<li>Correlation Id: ` + appInsightsItem.CorrelationId + `</li>
@@ -446,7 +490,9 @@ export default class ApplicationInsightsExplorerExplorerProvider implements vsco
 			` + exceptions + `
 			` + technicalProfiles + `
 			` + validationTechnicalProfiles + `
+			` + claimsString + `
 		</ul>
+		<h2>Application Insights JSON</h2>
 		<input type="button" onclick="copyJson()" id="copyJson" value="Copy" />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 		<input type="text" id="searchbox" />
 		<input type="button" onclick="highlight()" value="Search" />
@@ -468,7 +514,6 @@ export default class ApplicationInsightsExplorerExplorerProvider implements vsco
 
 		// Handle messages from the webview
 		this.panelConfig.webview.onDidReceiveMessage(message => {
-
 
 			// Load the configuration
 			var config = vscode.workspace.getConfiguration('aadb2c.ai');
