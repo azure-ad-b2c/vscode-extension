@@ -501,7 +501,7 @@ export default class ApplicationInsightsExplorerExplorerProvider implements vsco
 			` + claimsString + `
 		</ul>
 		<h2>Application Insights JSON</h2>
-		<input type="button" onclick="copyJson()" id="copyJson" value="Copy" />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+		<input type="button" onclick="copyJson()" id="copyJson" value="copy log to clipboard" />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 		<input type="text" id="searchbox" />
 		<input type="button" onclick="highlight()" value="Search" />
 		<pre><code id='json'>` + appInsightsItem.Data + `</code></pre>
