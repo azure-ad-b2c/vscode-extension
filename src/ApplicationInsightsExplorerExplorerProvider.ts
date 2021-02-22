@@ -100,25 +100,24 @@ export default class ApplicationInsightsExplorerExplorerProvider implements vsco
 			if (!error && response.statusCode == 200) {
 				this.error = "";
 				var info = null;
-				body = body.replace('""', '"')
-
-				// TBD Remove the Ellipsis
-				// body = body.replace(new RegExp('[^\x00-\x7F]', "g"), "")
-				// body = body.replace(new RegExp('[^[:ascii:]]', "g"), "")
-				// body = body.replace(/[^\x00-\x7F]/g, '')
-				// body = body.replace(/[\u{0080}-\u{FFFF}]/g, '')
-
+				
 				try {
 					info = JSON.parse(body);
 				}
 				catch (e) {
-					console.log(e.message)
-					vscode.window.showErrorMessage(e.message);
-					this.error = "Cannot parse the json data.";
-					this._onDidChangeTreeData.fire(null);
-					return;
+					try {
+						// I'm unclear why this replace exists, but removing it fixes the unexpected token c error
+						// Instead of immediately going for the replace, try parsing the body as is and then falling back to the replace as a last resort
+						body = body.replace('""', '"')
+						info = JSON.parse(body);
+					} catch (e2) {
+						console.log(e.message)
+						vscode.window.showErrorMessage(e.message);
+						this.error = "Cannot parse the json data.";
+						this._onDidChangeTreeData.fire(null);
+						return;
+					}
 				}
-
 
 				this.AppInsightsItems = [];
 				for (var i = 0; i < info.value.length; i++) {
