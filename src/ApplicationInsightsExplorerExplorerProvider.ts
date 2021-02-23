@@ -36,6 +36,7 @@ export default class ApplicationInsightsExplorerExplorerProvider implements vsco
 	panel;
 	panelConfig;
 	error: String = "";
+	appInsightsImageFile = null;
 
 	constructor(private context: vscode.ExtensionContext) {
 
@@ -43,6 +44,12 @@ export default class ApplicationInsightsExplorerExplorerProvider implements vsco
 		vscode.window.onDidChangeActiveTextEditor(() => this.onActiveEditorChanged());
 		this.parseTree();
 		this.onActiveEditorChanged();
+
+		// Get path to resource on disk
+		this.appInsightsImageFile = vscode.Uri.file(
+			path.join(context.extensionPath, 'media', 'app-insights-api-key.png')
+		  );
+	
 	}
 
 	refresh(Initiator?: String): void {
@@ -619,29 +626,69 @@ export default class ApplicationInsightsExplorerExplorerProvider implements vsco
 				duration: duration.value
 			})
 		}
+
+		function showKey()
+		{
+			var key = document.getElementById("key");
+			var keyShow = document.getElementById("keyShow");
+
+			if (key.type === "password")
+			{
+				key.type = "text";
+				keyShow.innerHTML = 'hide';
+			}
+			else
+			{
+				key.type = "password";
+				keyShow.innerHTML = 'show';
+			}
+
+		}
 	</script>	
 	</head>
-	<body>
+	<body style="font-family: Verdana, Helvetica, Menlo, Monaco, 'Courier New', monospace; line-height: 1.6;">
 		<H1>` + title + `</h3>
 
-		<a href="https://github.com/azure-ad-b2c/vscode-extension/blob/master/src/help/app-insights.md">Click here to learn how to configure Application insights</a><br />&nbsp;
+		If you haven't already done so, <a href='https://docs.microsoft.com/azure/active-directory-b2c/troubleshoot-with-application-insights'>set up Application Insights, and Configure the custom policy</a>.
 
+		<h2>Getting your Application Insights ID and key</h2>
+
+		The <b>API ID</b> and <b>API key</b> are used by Azure AD B2C extension to <b>read</b> the Application Insights events (telemetries). Your API keys should be managed like passwords. Keep it secret.
+
+		<br />&nbsp;<br />
+		
+		Note: Application Insights <a href='https://docs.microsoft.com/azure/active-directory-b2c/troubleshoot-with-application-insights'>instrumentation key</a> is required to <b>send</b> Azure AD B2C telemetries to Application Insights.
+		You use the <b>instrumentation key</b> only in your Azure AD B2C policy, not here.
+		<br />&nbsp;<br />
+		To get Application Insights ID and key:
+		<ol>
+			<li>In Azure portal, open the Application Insights resource for your application.</li>
+			<li>Select <b>Settings</b>, and then select <b>API Access</b>.</li>
+			<li>Copy the Application ID</li>
+			<li>Click on Create API Key</li>
+			<li>Check the Read telemetry box.</li>
+			<li>Copy the key before closing the Create API key blade and save it somewhere secure. (If you lose the key, you'll need to create another.)</li>
+		</ol>
+
+		<img src='` + this.panelConfig.webview.asWebviewUri(this.appInsightsImageFile) + `' />
+		
+		<h2>Application Insights settings</h2>
 		<table>
 		<tr>
 			<td>Your Application ID</td>
-			<td><input type="text" id="id" value="` + config.id + `"></td>
+			<td><input type="text" id="id" value="` + config.id + `" size="40"></td>
 		</tr>
 		<tr>
-			<td>Your Application key</td>
-			<td><input type="text" id="key" value="` + config.key + `"></td>
+			<td>Your Application key (secret)</td>
+			<td><input type="password" id="key" value="` + config.key + `" size="40"> <a href='javascript:void(0)' onclick='showKey(); return false;' id='keyShow'>show</a></td>
 		</tr>
 		<tr>
 			<td>The number of events to return</td>
-			<td><input type="number" id="maxRows" value="` + config.maxRows + `"  min="1" max="50"></td>
+			<td><input type="number" id="maxRows" value="` + config.maxRows + `"  min="1" max="50" style="min-width: 50px;"></td>
 		</tr>
 		<tr>
 			<td>The duration of events to return (in hours)</td>
-			<td><input type="number" id="duration" value="` + config.duration + `"  min="1" max="72"></td>
+			<td><input type="number" id="duration" value="` + config.duration + `"  min="1" max="72" size="40" style="min-width: 50px;"></td>
 		</tr>
 		<tr>
 			<td></td>
@@ -651,7 +698,6 @@ export default class ApplicationInsightsExplorerExplorerProvider implements vsco
 
 		<H2>Settings file locations</H2>
 		` + targetConfigFile + `
-
 	</body>
 	</html>`;
 	}
