@@ -107,25 +107,24 @@ export default class ApplicationInsightsExplorerExplorerProvider implements vsco
 			if (!error && response.statusCode == 200) {
 				this.error = "";
 				var info = null;
-				body = body.replace('""', '"')
-
-				// TBD Remove the Ellipsis
-				// body = body.replace(new RegExp('[^\x00-\x7F]', "g"), "")
-				// body = body.replace(new RegExp('[^[:ascii:]]', "g"), "")
-				// body = body.replace(/[^\x00-\x7F]/g, '')
-				// body = body.replace(/[\u{0080}-\u{FFFF}]/g, '')
-
+				
 				try {
 					info = JSON.parse(body);
 				}
 				catch (e) {
-					console.log(e.message)
-					vscode.window.showErrorMessage(e.message);
-					this.error = "Cannot parse the json data.";
-					this._onDidChangeTreeData.fire(null);
-					return;
+					try {
+						// I'm unclear why this replace exists, but removing it fixes the unexpected token c error
+						// Instead of immediately going for the replace, try parsing the body as is and then falling back to the replace as a last resort
+						body = body.replace('""', '"')
+						info = JSON.parse(body);
+					} catch (e2) {
+						console.log(e.message)
+						vscode.window.showErrorMessage(e.message);
+						this.error = "Cannot parse the json data.";
+						this._onDidChangeTreeData.fire(null);
+						return;
+					}
 				}
-
 
 				this.AppInsightsItems = [];
 				for (var i = 0; i < info.value.length; i++) {
@@ -347,99 +346,111 @@ export default class ApplicationInsightsExplorerExplorerProvider implements vsco
 	}
 
 	getWebviewContent(appInsightsItem: AppInsightsItem) {
+		var data = appInsightsItem.Data.toString();
+		var json = null;
+		var technicalProfiles = '';
+		var validationTechnicalProfiles = '';
+		var exceptions = '';
+		var claimsString = '';
+		var journeyIsCompleted = 'No';
 
-		var json = JSON.parse(appInsightsItem.Data.toString());
-		var jp = require('jsonpath'); //https://jsonpath.com/ and https://www.npmjs.com/package/jsonpath
-
-		// Get the list of technical profiles 
-		var collection = jp.query(json, '$..Values[?(@.Key=="InitiatingClaimsExchange")]');
-		var technicalProfiles = ''
-		for (var i in collection) {
-			technicalProfiles += '<li>' + collection[i].Value.TechnicalProfileId + ' (' + collection[i].Value.ProtocolProviderType + ')</li>';
+		try {
+			json = JSON.parse(data);
+		} catch (e) {
+			// When this would fail previously, VS Code would silently ignore the error and continue, returning no content
+			// to the user when they tried to view the app insights file
+			console.log("Failed to parse app insights JSON data: " + e.message);
 		}
 
-		if (technicalProfiles.length > 1) {
-			technicalProfiles = "<li>Technical profiles:<ol>" + technicalProfiles + "</ol></li>";
-		}
+		// If the json object is null, it means it couldn't be parsed. This happens when the JSON object is incomplete which
+		// occurs when the app insights trace is large
+		if (json !== null) {
+			var jp = require('jsonpath'); //https://jsonpath.com/ and https://www.npmjs.com/package/jsonpath
 
-		// Get the list of validation technical profiles 
-		collection = jp.query(json, '$..Values[?(@.Key=="TechnicalProfileId")]');
-		var validationTechnicalProfiles = ''
-		for (var i in collection) {
-			validationTechnicalProfiles += '<li>' + collection[i].Value + '</li>';
-		}
+			// Get the list of technical profiles 
+			var collection = jp.query(json, '$..Values[?(@.Key=="InitiatingClaimsExchange")]');
+			
+			for (var i in collection) {
+				technicalProfiles += '<li>' + collection[i].Value.TechnicalProfileId + ' (' + collection[i].Value.ProtocolProviderType + ')</li>';
+			}
+			if (technicalProfiles.length > 1) {
+				technicalProfiles = "<li>Technical profiles:<ol>" + technicalProfiles + "</ol></li>";
+			}
+			// Get the list of validation technical profiles 
+			collection = jp.query(json, '$..Values[?(@.Key=="TechnicalProfileId")]');
+			
+			for (var i in collection) {
+				validationTechnicalProfiles += '<li>' + collection[i].Value + '</li>';
+			}
 
-		if (validationTechnicalProfiles.length > 1) {
-			validationTechnicalProfiles = "<li>Validation technical profiles:<ol>" + validationTechnicalProfiles + "</ol></li>";
-		}
+			if (validationTechnicalProfiles.length > 1) {
+				validationTechnicalProfiles = "<li>Validation technical profiles:<ol>" + validationTechnicalProfiles + "</ol></li>";
+			}
+			// Get the fatal exceptions
+			collection = jp.query(json, '$..Exception');
 
-		// Get the fatal exceptions
-		collection = jp.query(json, '$..Exception');
+			
+			for (var i in collection) {
+				exceptions += '<li>' + collection[i].Message + '</li>';
+			}
 
-		var exceptions = ''
-		for (var i in collection) {
-			exceptions += '<li>' + collection[i].Message + '</li>';
-		}
+			// Get the exceptions
+			collection = jp.query(json, '$..Values[?(@.Key=="Exception")].Value');
 
-		// Get the exceptions
-		collection = jp.query(json, '$..Values[?(@.Key=="Exception")].Value');
+			for (var i in collection) {
+				exceptions += '<li>' + collection[i].Message + '</li>';
+			}
 
-		for (var i in collection) {
-			exceptions += '<li>' + collection[i].Message + '</li>';
-		}
+			if (exceptions.length > 1) {
+				exceptions = "<li><span style='color: red;'>Exceptions:</span><ol>" + exceptions + "</ol></li>";
+			}
+			// Get the claims
+			var normalizedJson = JSON.parse(appInsightsItem.Data.toString().replace(new RegExp('Complex\-CLMS', "g"), "ComplexCLMS"))
+			collection = jp.query(normalizedJson, '$..ComplexCLMS');
 
-		if (exceptions.length > 1) {
-			exceptions = "<li><span style='color: red;'>Exceptions:</span><ol>" + exceptions + "</ol></li>";
-		}
+			var claims = {};
+			for (var i in collection) {
+				var p = collection[i];
 
-		// Get the claims
-		var normalizedJson = JSON.parse(appInsightsItem.Data.toString().replace(new RegExp('Complex\-CLMS', "g"), "ComplexCLMS"))
-		collection = jp.query(normalizedJson, '$..ComplexCLMS');
+				for (var key of Object.keys(p)) {
+					console.log(key + " -> " + p[key])
 
-		var claims = {};
-		for (var i in collection) {
-			var p = collection[i];
+					// Check if the claim isn't in the collection
+					if (!claims[key]) {
+						// Add a claim to the collection. And set the first element in the values collection
+						claims[key] = [p[key]];
+					}
+					else {
+						// Get the last element in the claim's values collection
+						var lastObject = claims[key].length - 1;
 
-			for (var key of Object.keys(p)) {
-				console.log(key + " -> " + p[key])
-
-				// Check if the claim isn't in the collection
-				if (!claims[key]) {
-					// Add a claim to the collection. And set the first element in the values collection
-					claims[key] = [p[key]];
-				}
-				else {
-					// Get the last element in the claim's values collection
-					var lastObject = claims[key].length - 1;
-
-					// If the last element value isn't the same, then add the new value to the values collection
-					if (claims[key][lastObject] != p[key]) {
-						claims[key][lastObject + 1] = p[key];
+						// If the last element value isn't the same, then add the new value to the values collection
+						if (claims[key][lastObject] != p[key]) {
+							claims[key][lastObject + 1] = p[key];
+						}
 					}
 				}
 			}
-		}
-
-		var claimsString = '';
-		for (var key of Object.keys(claims)) {
-			claimsString += "<li>" + key + ": ";
-			for (var i in claims[key]) {
-				claimsString += claims[key][i] + " => "
+			for (var key of Object.keys(claims)) {
+				claimsString += "<li>" + key + ": ";
+				for (var i in claims[key]) {
+					claimsString += claims[key][i] + " => "
+				}
+				if (claimsString.length > 4)
+					claimsString = claimsString.slice(0, -4);
+				claimsString += "</li>";
 			}
-			if (claimsString.length > 4)
-				claimsString = claimsString.slice(0, -4);
-			claimsString += "</li>";
-		}
+	
+			if (claimsString.length > 1) {
+				claimsString = "<li>Claims:<ul>" + claimsString + "</ul></li>";
+			}
 
-		if (claimsString.length > 1) {
-			claimsString = "<li>Claims:<ul>" + claimsString + "</ul></li>";
+			// Get Journey is completed
+			collection = jp.query(json, '$..Values[?(@.Key=="JourneyCompleted")]');
+			if (collection.length > 0) journeyIsCompleted = "Yes";
+		} else {
+			journeyIsCompleted = "Unknown (JSON parse exception)";
 		}
-
-		// Get Journey is completed
-		var journeyIsCompleted = 'No';
-		collection = jp.query(json, '$..Values[?(@.Key=="JourneyCompleted")]');
-		if (collection.length > 0)
-		journeyIsCompleted = "Yes";
 
 		// Return the HTML page
 		return `<!DOCTYPE html>
