@@ -91,12 +91,24 @@ export default class ApplicationInsightsExplorerExplorerProvider implements vsco
 		}
 
 		// Prepare the Application insights call
-		var options = {
-			url: 'https://api.applicationinsights.io/v1/apps/' + config.id
-				+ '/events/traces?timespan=PT' + config.duration + 'H'
-				+ "&$filter=startswith(customDimensions/EventName, 'Journey Recorder')"
-				+ '&$top=' + config.maxRows
-				+ '&$orderby=timestamp desc&$select=id,timestamp,trace/message,customDimensions',
+		var timespan = '';
+
+        if (config.timespan > 0) {
+            let d = new Date();
+            d.setDate(d.getDate() - config.timespan);
+
+            timespan = d.getFullYear() + "-" + (d.getMonth() + 1) + "-" + d.getDate() + "/";
+        }
+
+        var url = 'https://api.applicationinsights.io/v1/apps/' + config.id
+            + '/events/traces?timespan=' + timespan + "PT" + config.duration + 'H'
+            + "&$filter=startswith(customDimensions/EventName, 'Journey Recorder')"
+            + '&$top=' + config.maxRows
+            + '&$orderby=timestamp desc&$select=id,timestamp,trace/message,customDimensions'
+
+        // Prepare the Application insights call
+        var options = {
+            url: url,
 			headers: {
 				'X-API-Key': config.key
 			}
@@ -553,6 +565,7 @@ export default class ApplicationInsightsExplorerExplorerProvider implements vsco
 			config.update("id", message.id, configurationTarget);
 			config.update("key", message.key, configurationTarget);
 			config.update("maxRows", Number(message.maxRows), configurationTarget);
+			config.update("timespan", Number(message.timespan), configurationTarget);
 			config.update("duration", Number(message.duration), configurationTarget);
 
 			this.panelConfig.dispose();
@@ -593,6 +606,12 @@ export default class ApplicationInsightsExplorerExplorerProvider implements vsco
 			</ul>`;
 		}
 
+		var timespanOptions = '';
+
+        for (var i = 0; i < 61; i++) {
+            timespanOptions += "<option value='" + i + "' " + ((i == config.timespan) ? 'selected' : '') + ">" + ((i == 0) ? 'Now' : i + ' days ago') + "</option>";
+        }
+
 		return `<!DOCTYPE html>
 	<html lang="en">
 	<head>
@@ -618,12 +637,15 @@ export default class ApplicationInsightsExplorerExplorerProvider implements vsco
 			const id = document.getElementById('id');
 			const key = document.getElementById('key');
 			const maxRows = document.getElementById('maxRows');
-
+			const duration = document.getElementById('duration');
+			const timespan = document.getElementById('timespan');
+			
 			vscode.postMessage({
 				id: id.value,
 				key: key.value, 
 				maxRows: maxRows.value, 
-				duration: duration.value
+				timespan: timespan.value,
+				duration: duration.value,
 			})
 		}
 
@@ -642,15 +664,28 @@ export default class ApplicationInsightsExplorerExplorerProvider implements vsco
 				key.type = "password";
 				keyShow.innerHTML = 'show';
 			}
+		}
+		function showAppIdAndKey()
+		{
+			var getAppIdAndKey = document.getElementById("getAppIdAndKey");
 
+			if (getAppIdAndKey.style.display === "none")
+			{
+				getAppIdAndKey.style.display = '';
+			}
+			else
+			{
+				getAppIdAndKey.style.display = 'none';
+			}
 		}
 	</script>	
 	</head>
 	<body style="font-family: Verdana, Helvetica, Menlo, Monaco, 'Courier New', monospace; line-height: 1.6;">
 		<H1>` + title + `</h3>
 
-		If you haven't already done so, <a href='https://docs.microsoft.com/azure/active-directory-b2c/troubleshoot-with-application-insights'>set up Application Insights, and Configure the custom policy</a>.
-
+		If you haven't already done so, <a href='https://docs.microsoft.com/azure/active-directory-b2c/troubleshoot-with-application-insights'>set up Application Insights, and Configure the custom policy</a>, then <a href='javascript:void(0)' onclick='showAppIdAndKey(); return false;'>get your Application Insights ID and key.</a>
+		
+		<span id="getAppIdAndKey" style="display: none">
 		<h2>Getting your Application Insights ID and key</h2>
 
 		The <b>API ID</b> and <b>API key</b> are used by Azure AD B2C extension to <b>read</b> the Application Insights events (telemetries). Your API keys should be managed like passwords. Keep it secret.
@@ -671,7 +706,7 @@ export default class ApplicationInsightsExplorerExplorerProvider implements vsco
 		</ol>
 
 		<img src='` + this.panelConfig.webview.asWebviewUri(this.appInsightsImageFile) + `' />
-		
+		</span>
 		<h2>Application Insights settings</h2>
 		<table>
 		<tr>
@@ -685,6 +720,14 @@ export default class ApplicationInsightsExplorerExplorerProvider implements vsco
 		<tr>
 			<td>The number of events to return</td>
 			<td><input type="number" id="maxRows" value="` + config.maxRows + `"  min="1" max="50" style="min-width: 50px;"></td>
+		</tr>
+		<tr>
+			<td>Returns events from</td>
+			<td><select id="timespan">
+				`
+				+ timespanOptions +
+				`
+	  		</select></td>
 		</tr>
 		<tr>
 			<td>The duration of events to return (in hours)</td>

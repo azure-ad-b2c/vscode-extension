@@ -228,6 +228,11 @@
                     "default": 30,
                     "description": "The number of events to return"
                 },
+                "aadb2c.ai.timespan": {
+                    "type": "integer",
+                    "default": 0,
+                    "description": "Returns events from (in days)"
+                },
                 "aadb2c.ai.duration": {
                     "type": "integer",
                     "default": 12,
