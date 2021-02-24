@@ -275,7 +275,7 @@ export default class ApplicationInsightsExplorerExplorerProvider implements vsco
 
 	}
 	formatDate(date: Date) {
-		return date.getFullYear().toString() + "-" + this.pad(date.getMonth()) + "-" + this.pad(date.getDate()) + " " + this.pad(date.getHours()) + ":" + this.pad(date.getMinutes()) + ":" + this.pad(date.getSeconds());
+		return date.getFullYear().toString() + "-" + this.pad(date.getMonth() + 1 ) + "-" + this.pad(date.getDate()) + " " + this.pad(date.getHours()) + ":" + this.pad(date.getMinutes()) + ":" + this.pad(date.getSeconds());
 	}
 	pad(date: number) {
 		return date.toString().length < 2 ? "0" + date : date;
