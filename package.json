@@ -53,6 +53,10 @@
                 "title": "B2C Smart paste"
             },
             {
+                "command": "extension.policy.renumber",
+                "title": "B2C Renumber policy"
+            },
+            {
                 "command": "ApplicationInsightsExplorer.refresh",
                 "title": "Refresh",
                 "icon": {
