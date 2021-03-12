@@ -25,7 +25,7 @@ export default class PolicyCommands {
                 let steps = selector("./ns:OrchestrationSteps/ns:OrchestrationStep", journey);
                 if (steps.length === 0) {
                     vscode.window.showInformationMessage("No steps to renumber");
-                    return;
+                    continue;
                 }
                 editor.edit((editBuilder) => {
                     for (let i = 0; i < steps.length; i++) {
@@ -33,6 +33,7 @@ export default class PolicyCommands {
                         for (let j = 0; j < steps[i].attributes.length; j++) {
                             if (steps[i].attributes[j].name === "Order") {
                                 orderAttr = steps[i].attributes[j];
+                                break;
                             }
                         }
                         if (!orderAttr) {
