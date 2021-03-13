@@ -247,6 +247,11 @@
                     "default": "",
                     "description": "The B2C Upload ApplicationID"
                 },
+                "aadb2c.autoRenumber": {
+                    "type": "boolean",
+                    "defaul": true,
+                    "description": "Automatically renumber out of order orchestration steps when building"
+                },
                 "environment.default": {
                     "type": "string",
                     "default": "",

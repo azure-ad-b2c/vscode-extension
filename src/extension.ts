@@ -102,7 +102,7 @@ export function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(vscode.commands.registerCommand('extension.policy.upload', () => PolicyUpload.uploadCurrentPolicy()));
 
     // Upload currently open Policy
-    context.subscriptions.push(vscode.commands.registerCommand('extension.policy.renumber', () => PolicyCommands.renumberPolicy()));
+    context.subscriptions.push(vscode.commands.registerCommand('extension.policy.renumber', () => PolicyCommands.renumberPolicyCommand()));
 
     // Upload all policies for the default environment
     context.subscriptions.push(vscode.commands.registerCommand('extension.policy.uploadAll', () => PolicyUpload.uploadAllPolicies()));
