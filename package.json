@@ -249,7 +249,7 @@
                 },
                 "aadb2c.autoRenumber": {
                     "type": "boolean",
-                    "defaul": true,
+                    "default": true,
                     "description": "Automatically renumber out of order orchestration steps when building"
                 },
                 "environment.default": {
