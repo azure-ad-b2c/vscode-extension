@@ -45,6 +45,12 @@ You can add following elements to your policy. Make sure your cursor is located 
 
 ![Adding XML elements](media/commands.png)
 
+## Orchestration steps renumbering
+
+The **B2C Renumber policy** (`Shift+Ctrl+r`) command renumbers all of the user journeys and sub journeys orchestration steps.
+
+![Orchestration steps renumbering](media/renumbering.gif)
+
 ## Smart Copy & Paste
 
 When you customize an XML element in the extension policy, **Smart Copy** allows you to copy the entire element with its parent's elements from the base policy. For example, when you copy the AAD-UserWriteUsingAlternativeSecurityId technical profile, Smart Copy generates an XML snippet containing the following elements so you don't need to search for the parent's element, such as the claim provider.

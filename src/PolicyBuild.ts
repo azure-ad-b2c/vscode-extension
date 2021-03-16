@@ -2,7 +2,7 @@ import * as vscode from 'vscode';
 import fs = require('fs');
 import path = require('path');
 import Consts from './Consts';
-import PolicyCommands from './PolicyCommands';
+import OrchestrationStepsRenumber from './OrchestrationStepsRenumber';
 
 export default class PolicBuild {
     static Build() {
@@ -67,7 +67,7 @@ export default class PolicBuild {
                             // Automatically renumber orchestration steps if they are out of order
                             let config = vscode.workspace.getConfiguration('aadb2c');
                             if (config.autoRenumber) {
-                                PolicyCommands.renumberPolicies(policyFiles);
+                                OrchestrationStepsRenumber.RenumberPolicies(policyFiles);
                             }
 
                             // Get the app settings

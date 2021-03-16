@@ -16,7 +16,7 @@ import CompletionProvider from './CompletionProvider';
 import XsdHelper from './services/XsdHelper';
 import PolicyUpload from './PolicyUpload';
 import B2CArtifacts from './B2CArtifacts';
-import PolicyCommands from './PolicyCommands';
+import OrchestrationStepsRenumber from './OrchestrationStepsRenumber';
 
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
@@ -102,7 +102,7 @@ export function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(vscode.commands.registerCommand('extension.policy.upload', () => PolicyUpload.uploadCurrentPolicy()));
 
     // Upload currently open Policy
-    context.subscriptions.push(vscode.commands.registerCommand('extension.policy.renumber', () => PolicyCommands.renumberPolicyCommand()));
+    context.subscriptions.push(vscode.commands.registerCommand('extension.policy.renumber', () => OrchestrationStepsRenumber.RenumberPolicyDocument()));
 
     // Upload all policies for the default environment
     context.subscriptions.push(vscode.commands.registerCommand('extension.policy.uploadAll', () => PolicyUpload.uploadAllPolicies()));

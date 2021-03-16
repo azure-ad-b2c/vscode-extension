@@ -1,5 +1,9 @@
 # Change Log
 
+## March 2021
+
+- User journey and sub journey renumbering ([#41](https://github.com/azure-ad-b2c/vscode-extension/pull/41/)).
+
 ## February 2021
 
 - Added the ability for xml files to be in nested folders.

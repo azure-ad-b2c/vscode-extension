@@ -137,6 +137,12 @@
                 "when": "editorTextFocus"
             },
             {
+                "command": "extension.policy.renumber",
+                "key": "shift+ctrl+r",
+                "mac": "shift+cmd+r",
+                "when": "editorTextFocus"
+            },
+            {
                 "command": "extension.policy.upload",
                 "key": "shift+ctrl+u",
                 "mac": "shift+cmd+u",
