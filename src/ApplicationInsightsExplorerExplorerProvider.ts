@@ -48,8 +48,8 @@ export default class ApplicationInsightsExplorerExplorerProvider implements vsco
 		// Get path to resource on disk
 		this.appInsightsImageFile = vscode.Uri.file(
 			path.join(context.extensionPath, 'media', 'app-insights-api-key.png')
-		  );
-	
+		);
+
 	}
 
 	refresh(Initiator?: String): void {
@@ -93,22 +93,22 @@ export default class ApplicationInsightsExplorerExplorerProvider implements vsco
 		// Prepare the Application insights call
 		var timespan = '';
 
-        if (config.timespan > 0) {
-            let d = new Date();
-            d.setDate(d.getDate() - config.timespan);
+		if (config.timespan > 0) {
+			let d = new Date();
+			d.setDate(d.getDate() - config.timespan);
 
-            timespan = d.getFullYear() + "-" + (d.getMonth() + 1) + "-" + d.getDate() + "/";
-        }
+			timespan = d.getFullYear() + "-" + (d.getMonth() + 1) + "-" + d.getDate() + "/";
+		}
 
-        var url = 'https://api.applicationinsights.io/v1/apps/' + config.id
-            + '/events/traces?timespan=' + timespan + "PT" + config.duration + 'H'
-            + "&$filter=startswith(customDimensions/EventName, 'Journey Recorder')"
-            + '&$top=' + config.maxRows
-            + '&$orderby=timestamp desc&$select=id,timestamp,trace/message,customDimensions'
+		var url = 'https://api.applicationinsights.io/v1/apps/' + config.id
+			+ '/events/traces?timespan=' + timespan + "PT" + config.duration + 'H'
+			+ "&$filter=startswith(customDimensions/EventName, 'Journey Recorder')"
+			+ '&$top=' + config.maxRows
+			+ '&$orderby=timestamp desc&$select=id,timestamp,trace/message,customDimensions'
 
-        // Prepare the Application insights call
-        var options = {
-            url: url,
+		// Prepare the Application insights call
+		var options = {
+			url: url,
 			headers: {
 				'X-API-Key': config.key
 			}
@@ -119,7 +119,7 @@ export default class ApplicationInsightsExplorerExplorerProvider implements vsco
 			if (!error && response.statusCode == 200) {
 				this.error = "";
 				var info = null;
-				
+
 				try {
 					info = JSON.parse(body);
 				}
@@ -275,7 +275,7 @@ export default class ApplicationInsightsExplorerExplorerProvider implements vsco
 
 	}
 	formatDate(date: Date) {
-		return date.getFullYear().toString() + "-" + this.pad(date.getMonth() + 1 ) + "-" + this.pad(date.getDate()) + " " + this.pad(date.getHours()) + ":" + this.pad(date.getMinutes()) + ":" + this.pad(date.getSeconds());
+		return date.getFullYear().toString() + "-" + this.pad(date.getMonth() + 1) + "-" + this.pad(date.getDate()) + " " + this.pad(date.getHours()) + ":" + this.pad(date.getMinutes()) + ":" + this.pad(date.getSeconds());
 	}
 	pad(date: number) {
 		return date.toString().length < 2 ? "0" + date : date;
@@ -362,9 +362,11 @@ export default class ApplicationInsightsExplorerExplorerProvider implements vsco
 		var json = null;
 		var technicalProfiles = '';
 		var validationTechnicalProfiles = '';
+		var claimsTransformation = '';
 		var exceptions = '';
 		var claimsString = '';
 		var journeyIsCompleted = 'No';
+		var internalError = '';
 
 		try {
 			json = JSON.parse(data);
@@ -372,6 +374,7 @@ export default class ApplicationInsightsExplorerExplorerProvider implements vsco
 			// When this would fail previously, VS Code would silently ignore the error and continue, returning no content
 			// to the user when they tried to view the app insights file
 			console.log("Failed to parse app insights JSON data: " + e.message);
+			internalError = "<h2>Internal error</h2><span style='color: red'> Failed to parse App Insights JSON data: " + e.message + "</span>"
 		}
 
 		// If the json object is null, it means it couldn't be parsed. This happens when the JSON object is incomplete which
@@ -381,27 +384,59 @@ export default class ApplicationInsightsExplorerExplorerProvider implements vsco
 
 			// Get the list of technical profiles 
 			var collection = jp.query(json, '$..Values[?(@.Key=="InitiatingClaimsExchange")]');
-			
+
 			for (var i in collection) {
 				technicalProfiles += '<li>' + collection[i].Value.TechnicalProfileId + ' (' + collection[i].Value.ProtocolProviderType + ')</li>';
 			}
 			if (technicalProfiles.length > 1) {
-				technicalProfiles = "<li>Technical profiles:<ol>" + technicalProfiles + "</ol></li>";
+				technicalProfiles = "<h2>Technical profiles</h2><ol>" + technicalProfiles + "</ol>";
 			}
 			// Get the list of validation technical profiles 
 			collection = jp.query(json, '$..Values[?(@.Key=="TechnicalProfileId")]');
-			
+
 			for (var i in collection) {
 				validationTechnicalProfiles += '<li>' + collection[i].Value + '</li>';
 			}
 
 			if (validationTechnicalProfiles.length > 1) {
-				validationTechnicalProfiles = "<li>Validation technical profiles:<ol>" + validationTechnicalProfiles + "</ol></li>";
+				validationTechnicalProfiles = "<h2>Validation technical profiles</h2><ol>" + validationTechnicalProfiles + "</ol>";
 			}
+
+
+			// Get the list of claims transformations  
+			collection = jp.query(json, '$..Values[?(@.Key=="ClaimsTransformation")]');
+
+			for (var i in collection) {
+				for (var x in collection[i].Value.Values) {
+					var obj = collection[i].Value.Values[x];
+
+					if (obj["Key"] === "Id") {
+						// Get the claims transformation name 
+						claimsTransformation = "<div>" + obj["Value"] + "</div><table><tr><th>Item</th><th>Name</th><th>Value</th></tr>";
+					}
+					else {
+						var name = "";
+
+						if (obj["Key"] === "InputClaim" || obj["Key"] === "Result") 
+							name = obj.Value["PolicyClaimType"];
+						else
+							name = obj.Value.Id;
+
+						claimsTransformation += "<tr><td>" + obj["Key"].toString().replace("Result","OutputClaim") + "</td><td>" + name + "</td><td>" + obj.Value.Value + "</td></tr>";
+					}
+				}
+
+				claimsTransformation += "</table>"
+			}
+
+			if (claimsTransformation.length > 1) {
+				claimsTransformation = "<h2>Claims transformation</h2>" + claimsTransformation ;
+			}
+
 			// Get the fatal exceptions
 			collection = jp.query(json, '$..Exception');
 
-			
+
 			for (var i in collection) {
 				exceptions += '<li>' + collection[i].Message + '</li>';
 			}
@@ -414,7 +449,7 @@ export default class ApplicationInsightsExplorerExplorerProvider implements vsco
 			}
 
 			if (exceptions.length > 1) {
-				exceptions = "<li><span style='color: red;'>Exceptions:</span><ol>" + exceptions + "</ol></li>";
+				exceptions = "<h2 style='color: red;'>Exceptions</h2><ol>" + exceptions + "</ol>";
 			}
 			// Get the claims
 			var normalizedJson = JSON.parse(appInsightsItem.Data.toString().replace(new RegExp('Complex\-CLMS', "g"), "ComplexCLMS"))
@@ -425,7 +460,6 @@ export default class ApplicationInsightsExplorerExplorerProvider implements vsco
 				var p = collection[i];
 
 				for (var key of Object.keys(p)) {
-					console.log(key + " -> " + p[key])
 
 					// Check if the claim isn't in the collection
 					if (!claims[key]) {
@@ -452,9 +486,9 @@ export default class ApplicationInsightsExplorerExplorerProvider implements vsco
 					claimsString = claimsString.slice(0, -4);
 				claimsString += "</li>";
 			}
-	
+
 			if (claimsString.length > 1) {
-				claimsString = "<li>Claims:<ul>" + claimsString + "</ul></li>";
+				claimsString = "<h2>Claims</h2><ul>" + claimsString + "</ul>";
 			}
 
 			// Get Journey is completed
@@ -490,7 +524,22 @@ export default class ApplicationInsightsExplorerExplorerProvider implements vsco
 		}
 		.highlight {
 			background-color: #ffff66;
+		}
+		table {
+			font-family: arial, sans-serif;
+			border-collapse: collapse;
+			//width: 100%;
 		  }
+		  
+		  td, th {
+			border: 1px solid #dddddd;
+			text-align: left;
+			padding: 3px;
+		  }
+		  
+		  /*tr:nth-child(even) {
+			background-color: #dddddd;
+		  }*/
 	</style>
 	<script>
 		function copyJson() {
@@ -525,11 +574,14 @@ export default class ApplicationInsightsExplorerExplorerProvider implements vsco
 			<li>App insights timestamp: ` + this.formatDate(new Date(appInsightsItem.Timestamp.toString())) + `</li>
 			<li>User journey is completed: ` + journeyIsCompleted + `</li>
 			<li>Orchestration steps: ` + appInsightsItem.OrchestrationStep.replace("Step", "") + `</li>
+		</ul>
+		  	` + internalError + `
 			` + exceptions + `
 			` + technicalProfiles + `
 			` + validationTechnicalProfiles + `
 			` + claimsString + `
-		</ul>
+			` + claimsTransformation + `
+		
 		<h2>Application Insights JSON</h2>
 		<input type="button" onclick="copyJson()" id="copyJson" value="copy log to clipboard" />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 		<input type="text" id="searchbox" />
@@ -538,8 +590,6 @@ export default class ApplicationInsightsExplorerExplorerProvider implements vsco
 		<pre><code id='jsonHidden' style='display: none;'>` + appInsightsItem.Data + `</code></pre>
 	</body>
 	</html>`;
-
-
 	}
 
 	settings() {
@@ -608,9 +658,9 @@ export default class ApplicationInsightsExplorerExplorerProvider implements vsco
 
 		var timespanOptions = '';
 
-        for (var i = 0; i < 61; i++) {
-            timespanOptions += "<option value='" + i + "' " + ((i == config.timespan) ? 'selected' : '') + ">" + ((i == 0) ? 'Now' : i + ' days ago') + "</option>";
-        }
+		for (var i = 0; i < 61; i++) {
+			timespanOptions += "<option value='" + i + "' " + ((i == config.timespan) ? 'selected' : '') + ">" + ((i == 0) ? 'Now' : i + ' days ago') + "</option>";
+		}
 
 		return `<!DOCTYPE html>
 	<html lang="en">
@@ -681,7 +731,7 @@ export default class ApplicationInsightsExplorerExplorerProvider implements vsco
 	</script>	
 	</head>
 	<body style="font-family: Verdana, Helvetica, Menlo, Monaco, 'Courier New', monospace; line-height: 1.6;">
-		<H1>` + title + `</h3>
+		<h1>` + title + `</h1>
 
 		If you haven't already done so, <a href='https://docs.microsoft.com/azure/active-directory-b2c/troubleshoot-with-application-insights'>set up Application Insights, and Configure the custom policy</a>, then <a href='javascript:void(0)' onclick='showAppIdAndKey(); return false;'>get your Application Insights ID and key.</a>
 		
@@ -725,8 +775,8 @@ export default class ApplicationInsightsExplorerExplorerProvider implements vsco
 			<td>Returns events from</td>
 			<td><select id="timespan">
 				`
-				+ timespanOptions +
-				`
+			+ timespanOptions +
+			`
 	  		</select></td>
 		</tr>
 		<tr>
@@ -744,6 +794,4 @@ export default class ApplicationInsightsExplorerExplorerProvider implements vsco
 	</body>
 	</html>`;
 	}
-
-
 }
