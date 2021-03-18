@@ -10,11 +10,14 @@ class AppInsightsItem {
 	OrchestrationStep: String;
 	CorrelationId: String;
 	Timestamp: String;
-	Data: String;
+	Data: string;
 	HasException: boolean;
+	Continuation: boolean;
+	CloudRoleInstance: String;
 
-	constructor(id: String, tenant: String, userJourney: String, orchestrationStep: String, correlationId: String, timestamp: String, data: String, hasException: boolean) {
+	constructor(id: String, cloudRoleInstance: String, tenant: String, userJourney: String, orchestrationStep: String, correlationId: String, timestamp: String, data: string, hasException: boolean) {
 		this.Id = id;
+		this.CloudRoleInstance = cloudRoleInstance;
 		this.Tenant = tenant;
 		this.UserJourney = userJourney;
 		this.OrchestrationStep = orchestrationStep;
@@ -22,6 +25,7 @@ class AppInsightsItem {
 		this.Timestamp = timestamp;
 		this.Data = data;
 		this.HasException = hasException;
+		this.Continuation = false;
 	}
 }
 
@@ -104,7 +108,7 @@ export default class ApplicationInsightsExplorerExplorerProvider implements vsco
 			+ '/events/traces?timespan=' + timespan + "PT" + config.duration + 'H'
 			+ "&$filter=startswith(customDimensions/EventName, 'Journey Recorder')"
 			+ '&$top=' + config.maxRows
-			+ '&$orderby=timestamp desc&$select=id,timestamp,trace/message,customDimensions'
+			+ '&$orderby=timestamp desc&$select=id,timestamp,cloud/roleInstance,trace/message,customDimensions'
 
 		// Prepare the Application insights call
 		var options = {
@@ -157,6 +161,7 @@ export default class ApplicationInsightsExplorerExplorerProvider implements vsco
 
 					this.AppInsightsItems.push(new AppInsightsItem(
 						info.value[i].id,
+						info.value[i].cloud.roleInstance,
 						info.value[i].customDimensions.Tenant,
 						info.value[i].customDimensions.UserJourney,
 						currentStep,
@@ -165,6 +170,34 @@ export default class ApplicationInsightsExplorerExplorerProvider implements vsco
 						element.trace.message,
 						(element.trace.message.indexOf('Exception') > 0)
 					));
+				}
+
+				for (i = 0; i < this.AppInsightsItems.length - 1; i++) {
+					if (this.AppInsightsItems[i].Timestamp === this.AppInsightsItems[i + 1].Timestamp &&
+						this.AppInsightsItems[i].CloudRoleInstance === this.AppInsightsItems[i + 1].CloudRoleInstance) {
+
+						// Set the first line as a continuation
+						this.AppInsightsItems[i].Continuation = true;
+						this.AppInsightsItems[i].Id += ", " + this.AppInsightsItems[i + 1].Id + " (The report shows a combination of two Application Insight entities)";
+
+						// Check if the first entity is the first one, or the continuation
+						if (this.AppInsightsItems[i].Data.startsWith("[")) {
+							this.AppInsightsItems[i].Data = this.AppInsightsItems[i].Data + this.AppInsightsItems[i + 1].Data;
+						}
+						else {
+							this.AppInsightsItems[i].Data = this.AppInsightsItems[i + 1].Data + this.AppInsightsItems[i].Data
+						}
+
+						// Set the orchestration steps
+						this.AppInsightsItems[i + 1].OrchestrationStep.replace("Step ", "").split(",").forEach(element => {
+							if (this.AppInsightsItems[i].OrchestrationStep.indexOf(element + ",") < 1) {
+								this.AppInsightsItems[i].OrchestrationStep += ", " + element
+							}
+						});
+
+						// Remove the second entity 
+						this.AppInsightsItems.splice(i + 1, 1);
+					}
 				}
 
 				this._onDidChangeTreeData.fire(null)
