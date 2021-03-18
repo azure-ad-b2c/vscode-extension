@@ -513,6 +513,8 @@ export default class ApplicationInsightsExplorerExplorerProvider implements vsco
 					}
 				}
 			}
+
+
 			for (var key of Object.keys(claims)) {
 				claimsString += "<li>" + key + ": ";
 				for (var i in claims[key]) {
@@ -524,6 +526,7 @@ export default class ApplicationInsightsExplorerExplorerProvider implements vsco
 			}
 
 			if (claimsString.length > 1) {
+				claimsString = claimsString.split("<li>").sort().join("<li>")
 				claimsString = "<h2>Claims</h2><ul>" + claimsString + "</ul>";
 			}
 
