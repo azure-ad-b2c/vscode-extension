@@ -411,18 +411,21 @@ export default class ApplicationInsightsExplorerExplorerProvider implements vsco
 					var obj = collection[i].Value.Values[x];
 
 					if (obj["Key"] === "Id") {
+
+						if (claimsTransformation.length > 0) claimsTransformation += "<br />";
+
 						// Get the claims transformation name 
-						claimsTransformation = "<div>" + obj["Value"] + "</div><table><tr><th>Item</th><th>Name</th><th>Value</th></tr>";
+						claimsTransformation += "<div>" + obj["Value"] + "</div><table><tr><th>Item</th><th>Name</th><th>Value</th></tr>";
 					}
 					else {
 						var name = "";
 
-						if (obj["Key"] === "InputClaim" || obj["Key"] === "Result") 
+						if (obj["Key"] === "InputClaim" || obj["Key"] === "Result")
 							name = obj.Value["PolicyClaimType"];
 						else
 							name = obj.Value.Id;
 
-						claimsTransformation += "<tr><td>" + obj["Key"].toString().replace("Result","OutputClaim") + "</td><td>" + name + "</td><td>" + obj.Value.Value + "</td></tr>";
+						claimsTransformation += "<tr><td>" + obj["Key"].toString().replace("Result", "OutputClaim") + "</td><td>" + name + "</td><td>" + obj.Value.Value + "</td></tr>";
 					}
 				}
 
@@ -430,7 +433,7 @@ export default class ApplicationInsightsExplorerExplorerProvider implements vsco
 			}
 
 			if (claimsTransformation.length > 1) {
-				claimsTransformation = "<h2>Claims transformation</h2>" + claimsTransformation ;
+				claimsTransformation = "<h2>Claims transformation</h2>" + claimsTransformation;
 			}
 
 			// Get the fatal exceptions
