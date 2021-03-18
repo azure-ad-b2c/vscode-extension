@@ -571,7 +571,7 @@ export default class ApplicationInsightsExplorerExplorerProvider implements vsco
 	<body>
 		  <h1>Application Insights</h1>
 		<ul>
-  			<li>User Journey: ` + appInsightsItem.UserJourney + `</li>
+  			<li>Policy: ` + appInsightsItem.UserJourney + `</li>
   			<li>Correlation Id: ` + appInsightsItem.CorrelationId + `</li>
 			<li>App insights Id: ` + appInsightsItem.Id + `</li>
 			<li>App insights timestamp: ` + this.formatDate(new Date(appInsightsItem.Timestamp.toString())) + `</li>
