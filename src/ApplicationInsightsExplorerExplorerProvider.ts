@@ -10,11 +10,14 @@ class AppInsightsItem {
 	OrchestrationStep: String;
 	CorrelationId: String;
 	Timestamp: String;
-	Data: String;
+	Data: string;
 	HasException: boolean;
+	Continuation: boolean;
+	CloudRoleInstance: String;
 
-	constructor(id: String, tenant: String, userJourney: String, orchestrationStep: String, correlationId: String, timestamp: String, data: String, hasException: boolean) {
+	constructor(id: String, cloudRoleInstance: String, tenant: String, userJourney: String, orchestrationStep: String, correlationId: String, timestamp: String, data: string, hasException: boolean) {
 		this.Id = id;
+		this.CloudRoleInstance = cloudRoleInstance;
 		this.Tenant = tenant;
 		this.UserJourney = userJourney;
 		this.OrchestrationStep = orchestrationStep;
@@ -22,6 +25,7 @@ class AppInsightsItem {
 		this.Timestamp = timestamp;
 		this.Data = data;
 		this.HasException = hasException;
+		this.Continuation = false;
 	}
 }
 
@@ -104,7 +108,7 @@ export default class ApplicationInsightsExplorerExplorerProvider implements vsco
 			+ '/events/traces?timespan=' + timespan + "PT" + config.duration + 'H'
 			+ "&$filter=startswith(customDimensions/EventName, 'Journey Recorder')"
 			+ '&$top=' + config.maxRows
-			+ '&$orderby=timestamp desc&$select=id,timestamp,trace/message,customDimensions'
+			+ '&$orderby=timestamp desc&$select=id,timestamp,cloud/roleInstance,trace/message,customDimensions'
 
 		// Prepare the Application insights call
 		var options = {
@@ -157,14 +161,47 @@ export default class ApplicationInsightsExplorerExplorerProvider implements vsco
 
 					this.AppInsightsItems.push(new AppInsightsItem(
 						info.value[i].id,
+						info.value[i].cloud.roleInstance,
 						info.value[i].customDimensions.Tenant,
 						info.value[i].customDimensions.UserJourney,
 						currentStep,
 						info.value[i].customDimensions.CorrelationId,
 						info.value[i].timestamp,
 						element.trace.message,
-						(element.trace.message.indexOf('Exception') > 0)
+						(element.trace.message.indexOf('"Exception"') > 0)
 					));
+				}
+
+				for (i = 0; i < this.AppInsightsItems.length - 1; i++) {
+					if (this.AppInsightsItems[i].Timestamp === this.AppInsightsItems[i + 1].Timestamp &&
+						this.AppInsightsItems[i].CloudRoleInstance === this.AppInsightsItems[i + 1].CloudRoleInstance) {
+
+						// Set the first line as a continuation
+						this.AppInsightsItems[i].Continuation = true;
+						this.AppInsightsItems[i].Id += ", " + this.AppInsightsItems[i + 1].Id + " (The report shows a combination of two Application Insight entities)";
+
+						// Check if the first entity is the first one, or the continuation
+						if (this.AppInsightsItems[i].Data.startsWith("[")) {
+							this.AppInsightsItems[i].Data = this.AppInsightsItems[i].Data + this.AppInsightsItems[i + 1].Data;
+						}
+						else {
+							this.AppInsightsItems[i].Data = this.AppInsightsItems[i + 1].Data + this.AppInsightsItems[i].Data
+						}
+
+						// Set the orchestration steps
+						this.AppInsightsItems[i + 1].OrchestrationStep.replace("Step ", "").split(",").forEach(element => {
+							if (this.AppInsightsItems[i].OrchestrationStep.indexOf(element + ",") < 1) {
+								this.AppInsightsItems[i].OrchestrationStep += ", " + element
+							}
+						});
+
+						if (this.AppInsightsItems[i].OrchestrationStep.length > 0 &&
+							(!this.AppInsightsItems[i].OrchestrationStep.startsWith("Step")))
+							this.AppInsightsItems[i].OrchestrationStep = "Step " + this.AppInsightsItems[i].OrchestrationStep;
+
+						// Remove the second entity 
+						this.AppInsightsItems.splice(i + 1, 1);
+					}
 				}
 
 				this._onDidChangeTreeData.fire(null)
@@ -367,6 +404,7 @@ export default class ApplicationInsightsExplorerExplorerProvider implements vsco
 		var claimsString = '';
 		var journeyIsCompleted = 'No';
 		var internalError = '';
+		var tokens = ''
 
 		try {
 			json = JSON.parse(data);
@@ -411,18 +449,21 @@ export default class ApplicationInsightsExplorerExplorerProvider implements vsco
 					var obj = collection[i].Value.Values[x];
 
 					if (obj["Key"] === "Id") {
+
+						if (claimsTransformation.length > 0) claimsTransformation += "<br />";
+
 						// Get the claims transformation name 
-						claimsTransformation = "<div>" + obj["Value"] + "</div><table><tr><th>Item</th><th>Name</th><th>Value</th></tr>";
+						claimsTransformation += "<div>" + obj["Value"] + "</div><table><tr><th>Item</th><th>Name</th><th>Value</th></tr>";
 					}
 					else {
 						var name = "";
 
-						if (obj["Key"] === "InputClaim" || obj["Key"] === "Result") 
+						if (obj["Key"] === "InputClaim" || obj["Key"] === "Result")
 							name = obj.Value["PolicyClaimType"];
 						else
 							name = obj.Value.Id;
 
-						claimsTransformation += "<tr><td>" + obj["Key"].toString().replace("Result","OutputClaim") + "</td><td>" + name + "</td><td>" + obj.Value.Value + "</td></tr>";
+						claimsTransformation += "<tr><td>" + obj["Key"].toString().replace("Result", "OutputClaim") + "</td><td>" + name + "</td><td>" + obj.Value.Value + "</td></tr>";
 					}
 				}
 
@@ -430,7 +471,7 @@ export default class ApplicationInsightsExplorerExplorerProvider implements vsco
 			}
 
 			if (claimsTransformation.length > 1) {
-				claimsTransformation = "<h2>Claims transformation</h2>" + claimsTransformation ;
+				claimsTransformation = "<h2>Claims transformation</h2>" + claimsTransformation;
 			}
 
 			// Get the fatal exceptions
@@ -451,6 +492,23 @@ export default class ApplicationInsightsExplorerExplorerProvider implements vsco
 			if (exceptions.length > 1) {
 				exceptions = "<h2 style='color: red;'>Exceptions</h2><ol>" + exceptions + "</ol>";
 			}
+
+			// Tokens
+			collection = jp.query(json, '$..[?(@.ContentType)]');
+			for (var i in collection) {
+
+				var array = collection[i].Value.split(";")
+
+				if (array.length > 1)
+					tokens += '<li>' + array[2] + " (" + collection[i].ContentType + "): " + array[0] + '</li>';
+				else
+					tokens += '<li>' + collection[i].Value + '</li>';
+			}
+
+			if (tokens.length > 1) {
+				tokens = "<h2>Tokens</h2><ol>" + tokens + "</ol>";
+			}
+
 			// Get the claims
 			var normalizedJson = JSON.parse(appInsightsItem.Data.toString().replace(new RegExp('Complex\-CLMS', "g"), "ComplexCLMS"))
 			collection = jp.query(normalizedJson, '$..ComplexCLMS');
@@ -477,6 +535,8 @@ export default class ApplicationInsightsExplorerExplorerProvider implements vsco
 					}
 				}
 			}
+
+
 			for (var key of Object.keys(claims)) {
 				claimsString += "<li>" + key + ": ";
 				for (var i in claims[key]) {
@@ -488,6 +548,7 @@ export default class ApplicationInsightsExplorerExplorerProvider implements vsco
 			}
 
 			if (claimsString.length > 1) {
+				claimsString = claimsString.split("<li>").sort().join("<li>")
 				claimsString = "<h2>Claims</h2><ul>" + claimsString + "</ul>";
 			}
 
@@ -568,7 +629,7 @@ export default class ApplicationInsightsExplorerExplorerProvider implements vsco
 	<body>
 		  <h1>Application Insights</h1>
 		<ul>
-  			<li>User Journey: ` + appInsightsItem.UserJourney + `</li>
+  			<li>Policy: ` + appInsightsItem.UserJourney + `</li>
   			<li>Correlation Id: ` + appInsightsItem.CorrelationId + `</li>
 			<li>App insights Id: ` + appInsightsItem.Id + `</li>
 			<li>App insights timestamp: ` + this.formatDate(new Date(appInsightsItem.Timestamp.toString())) + `</li>
@@ -581,9 +642,9 @@ export default class ApplicationInsightsExplorerExplorerProvider implements vsco
 			` + validationTechnicalProfiles + `
 			` + claimsString + `
 			` + claimsTransformation + `
-		
+			` + tokens + `
 		<h2>Application Insights JSON</h2>
-		<input type="button" onclick="copyJson()" id="copyJson" value="copy log to clipboard" />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+		<input type="button" onclick="copyJson()" id="copyJson" value="Copy log to clipboard" />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 		<input type="text" id="searchbox" />
 		<input type="button" onclick="highlight()" value="Search" />
 		<pre><code id='json'>` + appInsightsItem.Data + `</code></pre>
