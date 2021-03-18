@@ -168,7 +168,7 @@ export default class ApplicationInsightsExplorerExplorerProvider implements vsco
 						info.value[i].customDimensions.CorrelationId,
 						info.value[i].timestamp,
 						element.trace.message,
-						(element.trace.message.indexOf('Exception') > 0)
+						(element.trace.message.indexOf('"Exception"') > 0) 
 					));
 				}
 
@@ -194,6 +194,10 @@ export default class ApplicationInsightsExplorerExplorerProvider implements vsco
 								this.AppInsightsItems[i].OrchestrationStep += ", " + element
 							}
 						});
+
+						if (this.AppInsightsItems[i].OrchestrationStep.length > 0 &&
+							(!this.AppInsightsItems[i].OrchestrationStep.startsWith("Step")))
+							this.AppInsightsItems[i].OrchestrationStep = "Step " + this.AppInsightsItems[i].OrchestrationStep;
 
 						// Remove the second entity 
 						this.AppInsightsItems.splice(i + 1, 1);
