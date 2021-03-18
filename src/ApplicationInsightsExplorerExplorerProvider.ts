@@ -168,7 +168,7 @@ export default class ApplicationInsightsExplorerExplorerProvider implements vsco
 						info.value[i].customDimensions.CorrelationId,
 						info.value[i].timestamp,
 						element.trace.message,
-						(element.trace.message.indexOf('"Exception"') > 0) 
+						(element.trace.message.indexOf('"Exception"') > 0)
 					));
 				}
 
@@ -404,6 +404,7 @@ export default class ApplicationInsightsExplorerExplorerProvider implements vsco
 		var claimsString = '';
 		var journeyIsCompleted = 'No';
 		var internalError = '';
+		var tokens = ''
 
 		try {
 			json = JSON.parse(data);
@@ -491,6 +492,23 @@ export default class ApplicationInsightsExplorerExplorerProvider implements vsco
 			if (exceptions.length > 1) {
 				exceptions = "<h2 style='color: red;'>Exceptions</h2><ol>" + exceptions + "</ol>";
 			}
+
+			// Tokens
+			collection = jp.query(json, '$..[?(@.ContentType)]');
+			for (var i in collection) {
+
+				var array = collection[i].Value.split(";")
+
+				if (array.length > 1)
+					tokens += '<li>' + array[2] + " (" + collection[i].ContentType + "): " + array[0] + '</li>';
+				else
+					tokens += '<li>' + collection[i].Value + '</li>';
+			}
+
+			if (tokens.length > 1) {
+				tokens = "<h2>Tokens</h2><ol>" + tokens + "</ol>";
+			}
+
 			// Get the claims
 			var normalizedJson = JSON.parse(appInsightsItem.Data.toString().replace(new RegExp('Complex\-CLMS', "g"), "ComplexCLMS"))
 			collection = jp.query(normalizedJson, '$..ComplexCLMS');
@@ -624,7 +642,7 @@ export default class ApplicationInsightsExplorerExplorerProvider implements vsco
 			` + validationTechnicalProfiles + `
 			` + claimsString + `
 			` + claimsTransformation + `
-		
+			` + tokens + `
 		<h2>Application Insights JSON</h2>
 		<input type="button" onclick="copyJson()" id="copyJson" value="Copy log to clipboard" />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 		<input type="text" id="searchbox" />
