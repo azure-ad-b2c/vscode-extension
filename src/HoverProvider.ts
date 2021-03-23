@@ -5,6 +5,8 @@ import path = require('path');
 import { ReferenceProvider } from './ReferenceProvider';
 import { SelectedWord } from './models/SelectedWord';
 import XmlHelper from './services/XmlHelper';
+import { Suggestion } from './models/Suggestion';
+import XsdHelper from './services/XsdHelper';
 
 export default class HoverProvider {
 
@@ -19,7 +21,7 @@ export default class HoverProvider {
         selectedWord.Value = selectedWord.Title.toLocaleLowerCase();
 
         if (selectedWord.Value.length == 0)
-            return new Promise((resolve) => resolve());
+            return new Promise((resolve) => resolve(null));
 
         // Check if the selected word is a XML element (not a value)    
         selectedWord.IsTag = ReferenceProvider.isTagSelected(document, position);
@@ -29,7 +31,7 @@ export default class HoverProvider {
 
         if (selectedWord.IsTag) {
             return new Promise(resolve => {
-                resolve(new Hover(this.GetHelp(selectedWord)));
+                resolve(new Hover(this.GetHelp(document, position, selectedWord)));
             });
         }
         else {
@@ -59,7 +61,7 @@ export default class HoverProvider {
         }
     }
 
-    GetHelp(selectedWord: SelectedWord): string {
+    GetHelp(document: vscode.TextDocument, position: vscode.Position, selectedWord: SelectedWord): vscode.MarkdownString {
 
         var message = "";
         var links: string[] = [];
@@ -340,12 +342,29 @@ export default class HoverProvider {
         }
 
         if (links.length > 0)
-            message = "Quick help\r\n\r\n";
+            message = "**Quick help**\r\n";
 
         links.forEach(function (value) {
             message += "- [" + value.split("|")[0] + "](" + value.split("|")[1] + ")\r\n"
         });
 
-        return message;
+
+        // The the element children
+        let xPath = XmlHelper.GetXPath(document, position);
+        xPath[xPath.length] = selectedWord.Title;
+        let elements: Suggestion[] = XsdHelper.GetSubElements(xPath);
+
+        if (elements.length > 0) {
+            if (message.length > 5)
+                message += "\r\r";
+
+            message += "**" + xPath[xPath.length - 1] + " elements:**\r\n"
+
+            elements.forEach(element => {
+                message += "1. " + element.InsertText + "\r\n\r";
+            });
+        }
+        const contents = new vscode.MarkdownString(message);
+        return contents;
     }
 }

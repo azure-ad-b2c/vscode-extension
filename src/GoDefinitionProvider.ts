@@ -27,7 +27,7 @@ export default class GoDefinitionProvider implements vscode.DefinitionProvider {
 		selectedWord.Value = ReferenceProvider.getSelectedWord(document, position).toLowerCase();
 
 		if (selectedWord.Value.length == 0)
-			return new Promise((resolve) => resolve());
+			return new Promise((resolve) => resolve(null));
 
 		// Get more information regarding the selected word	
 		selectedWord = XmlHelper.GetSelectedWordData(selectedWord, position, document);
@@ -150,7 +150,7 @@ export default class GoDefinitionProvider implements vscode.DefinitionProvider {
 		}
 
 		// Return no found (null)
-		return new Promise((resolve) => resolve());
+		return new Promise((resolve) => resolve(null));
 	}
 }
 
