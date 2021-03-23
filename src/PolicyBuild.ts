@@ -73,7 +73,7 @@ export default class PolicBuild {
                             // Get the app settings
                             vscode.workspace.openTextDocument(filePath).then(doc => {
                                 var appSettings = JSON.parse(doc.getText());
-                                var environmentsRootPath = path.join(rootPath, "Environments");
+                                var environmentsRootPath = path.join(rootPath, environmentFolder);
 
                                 // Ensure environments folder exists
                                 if (!fs.existsSync(environmentsRootPath)) {
