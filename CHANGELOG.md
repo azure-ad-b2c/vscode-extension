@@ -3,6 +3,7 @@
 ## March 2021
 
 - User journey and sub journey renumbering ([#41](https://github.com/azure-ad-b2c/vscode-extension/pull/41/)).
+- XML elements order on mouseover ([#49](https://github.com/azure-ad-b2c/vscode-extension/pull/49)).
 
 ## February 2021
 
