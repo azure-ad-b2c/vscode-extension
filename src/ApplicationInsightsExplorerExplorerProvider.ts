@@ -499,8 +499,18 @@ export default class ApplicationInsightsExplorerExplorerProvider implements vsco
 
 				var array = collection[i].Value.split(";")
 
-				if (array.length > 1)
-					tokens += '<li>' + array[2] + " (" + collection[i].ContentType + "): " + array[0] + '</li>';
+				if (array.length > 1) {
+					var tokeValidation = ''
+					if ((collection[i].ContentType.toLowerCase() === "jwt" || (collection[i].ContentType.toLowerCase() === "unspecified"))
+						&& tokeValidation + array[0].search(/^[A-Za-z0-9-_=]+\.[A-Za-z0-9-_=]+\.?[A-Za-z0-9-_.+/=]*$/i) == '0') {
+						tokeValidation = "<a href='https://jwt.ms/#id_token=" + tokeValidation + array[0] + "'>https://jwt.ms</a>";
+					}
+					else if (collection[i].ContentType.toLowerCase() === 'json') {
+						array[0] = array[0].replace(/[ ]*,"[ ]*|[ ]+/g,",<br />&nbsp;&nbsp;&nbsp;\"").replace("{", "{<br />&nbsp;&nbsp;&nbsp;").replace("}", "<br />}");
+				}
+
+					tokens += '<li><b>' + array[2] + " </b>(" + collection[i].ContentType + ") " + tokeValidation + ":<pre><code>" + array[0] + '</code></pre></li>';
+				}
 				else
 					tokens += '<li>' + collection[i].Value + '</li>';
 			}
