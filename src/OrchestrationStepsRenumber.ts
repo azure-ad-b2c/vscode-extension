@@ -34,7 +34,13 @@ export default class OrchestrationStepsRenumber {
     static RenumberPolicies(files): any {
         let policies: Map<string, Policy> = new Map();
         for (let file of files) {
-            let policy = new Policy(file);
+            let policy = null;
+            try {
+                policy = new Policy(file);
+            } catch (e) {
+                vscode.window.showErrorMessage(`${file.FileName} has invalid XML. Skipping renumber for this file`);
+                continue;
+            }
             if (!policy.policyId) {
                 continue;
             }
