@@ -39,6 +39,7 @@ export default class OrchestrationStepsRenumber {
                 policy = new Policy(file);
             } catch (e) {
                 vscode.window.showErrorMessage(`${file.FileName} has invalid XML. Skipping renumber for this file`);
+                continue;
             }
             if (!policy.policyId) {
                 continue;
