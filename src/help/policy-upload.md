@@ -21,6 +21,7 @@ Within VSCode, click on the **Settings** icon.
 
 Choose **Extensions** and then “**Azure AD B2C**” 
 In the **Graph: ClientId**, set the value of the application ID you created earlier.
+**IMPORTANT**: you can change this setting at the *User* or *Workspace* level. Changing it at *Workspace* lavel is highly recommended since you will be able to use different application IDs for different projects/folders.
 
 ![vscode-settings-msgraph.png](media/vscode-settings-msgraph.png)
 
