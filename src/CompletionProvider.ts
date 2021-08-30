@@ -15,10 +15,16 @@ export default class CompletionProvider implements vscode.CompletionItemProvider
         token: vscode.CancellationToken,
         context: vscode.CompletionContext): vscode.ProviderResult<vscode.CompletionItem[] | vscode.CompletionList> {
 
-        let xmlExtension = vscode.extensions.getExtension('redhat.vscode-xml');
+        let xmlExtensions: string[] = ['redhat.vscode-xml', 'dotjoshjohnson.xml'];
 
-        // Check if the https://marketplace.visualstudio.com/items?itemName=redhat.vscode-xml is installed and activated
-        this.xmlExtensionInstalledAndActive = (xmlExtension && xmlExtension.isActive)
+        xmlExtensions.forEach(element => {
+            // Check if an XML extensions is installed and activated
+            if (this.xmlExtensionInstalledAndActive == false) {
+                let xmlExtension = vscode.extensions.getExtension(element);
+
+                this.xmlExtensionInstalledAndActive = (xmlExtension && xmlExtension.isActive) ? true : false;
+            }
+        });
 
         return this.GetItems(document, position);
 
