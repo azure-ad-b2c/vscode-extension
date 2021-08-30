@@ -16,6 +16,10 @@ You can now [upload your policy directly from VS Code](https://github.com/azure-
 
 ## Autocomplete
 
+> [!NOTE]
+> Starting August 2021, if the [XML](https://marketplace.visualstudio.com/items?itemName=redhat.vscode-xml), or the [XML Tools
+](https://marketplace.visualstudio.com/items?itemName=DotJoshJohnson.xml) XML extensions are installed and activated, the XML extension handles the XML completion. For more information, see [Troubleshoot policy validity](https://docs.microsoft.com/azure/active-directory-b2c/troubleshoot-custom-policies#troubleshoot-policy-validity).
+
 With the autocomplete feature, you can save time when customizing a B2C policy. The B2C extension provides you with a list of the policy settings, claims, technical profiles, and claims transformations aggregated from your policy files. Select one of the following attributes and press `Ctrl+Space` (`Cmd+Space`), or start typing:
 
 ![Autocomplete](media/autocomplete-new.png)
