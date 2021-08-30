@@ -40,12 +40,12 @@ export function activate(context: vscode.ExtensionContext) {
     vscode.commands.registerCommand('ApplicationInsightsExplorer.show', range => applicationInsightsExplorerProvider.show(range));
     vscode.commands.registerCommand('ApplicationInsightsExplorer.settings', range => applicationInsightsExplorerProvider.settings());
 
-    // Refister find all reference
+    // Register find all reference
     context.subscriptions.push(
         vscode.languages.registerReferenceProvider(
             "xml", new ReferenceProvider()));
 
-    // Register go to definiton provider
+    // Register go to definition provider
     context.subscriptions.push(
         vscode.languages.registerDefinitionProvider([
             { language: 'xml', scheme: 'file', pattern: '**/*xml*' }
