@@ -33,7 +33,7 @@ try{
     Write-Verbose "Files found: $XmlPolicyFiles"
 
     #Get the app settings                        
-    $EnvironmentsRootPath = Join-Path $FilePath "Environments"
+    $EnvironmentsRootPath = Join-Path $FilePath ($AppSettingsJson.EnvironmentsFolder ?? "Environments")
 
     #Ensure environments folder exists
     if((Test-Path -Path $EnvironmentsRootPath -PathType Container) -ne $true)
