@@ -25,7 +25,7 @@ export default class OrchestrationStepsRenumber {
                 OrchestrationStepsRenumber.renumberOrchestrationSteps(xmlDoc, editBuilder, "/ns:TrustFrameworkPolicy/ns:SubJourneys/ns:SubJourney");
             });
 
-        } catch (e) {
+        } catch (e: any) {
             vscode.window.showErrorMessage(e.message);
         }
     }
@@ -125,6 +125,40 @@ class Policy {
         return _selector(s, this.xml);
     }
 
+    hasPolicyId(policyId): boolean {
+        if (this.journeys.has(policyId)) {
+            return true;
+        }
+
+        let seenBases = new Set();
+        let config = vscode.workspace.getConfiguration("aadb2c");
+        let maxDepth = Number(config.get("maxPolicyRenumberDepth", 15));
+        let currentDepth = 0;
+        let currentBase: Policy = this.base;
+
+        // Semi-recursively iterates over the base policies to determine if they have the given policyId
+        while (currentBase !== null && currentDepth++ < maxDepth) {
+            // If the current base has the policy, we can return true
+            if (currentBase.journeys.has(policyId)) {
+                return true;
+            }
+
+            // Add the current base to the seen bases, and advance to the next one
+            seenBases.add(currentBase.policyId);
+            currentBase = currentBase.base;
+
+            if (currentBase == null || seenBases.has(currentBase.policyId)) {
+                // Either there is no base for the previous base, or we've hit a cycle
+                // Hitting a cycle shouldn't technically be possible, but protect against it anyway as there's
+                // nothing that would prevent people from writing an invalid policy
+                return false;
+            }
+        }
+
+        // In the event we didn't find the policyId in the base policies, return false
+        return false;
+    }
+
     process() {
         if (this.processed) {
             return;
@@ -141,7 +175,7 @@ class Policy {
         for (let journey of journeys) {
             let journeyId = _selector("string(./@Id)", journey);
             this.journeys.add(journeyId);
-            if (this.base && this.base.journeys.has(journeyId)) {
+            if (this.base && this.base.hasPolicyId(journeyId)) {
                 vscode.window.showInformationMessage(`Skipped renumbering ${this.policyId} because it has a base journey in another file`);
                 continue; // We won't renumber anything which has the journey defined in its base because
                 // it's impossible to know what the programmer intends

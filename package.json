@@ -253,6 +253,11 @@
                     "default": "",
                     "description": "The B2C Upload ApplicationID"
                 },
+                "aadb2c.maxPolicyRenumberDepth": {
+                    "type": "integer",
+                    "default": 15,
+                    "description": "When analyzing base files while auto-renumbering, the maximum depth to examine before stopping. Shouldn't need to change this value unless you have a ridiculous number of base policies."
+                },
                 "aadb2c.autoRenumber": {
                     "type": "boolean",
                     "default": true,
