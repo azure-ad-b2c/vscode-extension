@@ -1,5 +1,10 @@
 # Change Log
 
+## August 2021
+
+- Check if the [XML](https://marketplace.visualstudio.com/items?itemName=redhat.vscode-xml), or the [XML Tools
+](https://marketplace.visualstudio.com/items?itemName=DotJoshJohnson.xml) XML extensions are installed and activated. If yes, let the XML extension handle the XML completion. For more information, see [Troubleshoot policy validity](https://docs.microsoft.com/azure/active-directory-b2c/troubleshoot-custom-policies#troubleshoot-policy-validity).
+
 ## March 2021
 
 - User journey and sub journey renumbering ([#41](https://github.com/azure-ad-b2c/vscode-extension/pull/41/)).

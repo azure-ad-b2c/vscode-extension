@@ -7,7 +7,24 @@ import { SelectedWord } from './models/SelectedWord';
 import Consts from './Consts';
 
 export default class CompletionProvider implements vscode.CompletionItemProvider {
-    provideCompletionItems(document: vscode.TextDocument, position: vscode.Position, token: vscode.CancellationToken, context: vscode.CompletionContext): vscode.ProviderResult<vscode.CompletionItem[] | vscode.CompletionList> {
+
+    xmlExtensionInstalledAndActive: boolean = false;
+
+    provideCompletionItems(document: vscode.TextDocument,
+        position: vscode.Position,
+        token: vscode.CancellationToken,
+        context: vscode.CompletionContext): vscode.ProviderResult<vscode.CompletionItem[] | vscode.CompletionList> {
+
+        let xmlExtensions: string[] = ['redhat.vscode-xml', 'dotjoshjohnson.xml'];
+
+        xmlExtensions.forEach(element => {
+            // Check if an XML extensions is installed and activated
+            if (this.xmlExtensionInstalledAndActive == false) {
+                let xmlExtension = vscode.extensions.getExtension(element);
+
+                this.xmlExtensionInstalledAndActive = (xmlExtension && xmlExtension.isActive) ? true : false;
+            }
+        });
 
         return this.GetItems(document, position);
 
@@ -33,7 +50,7 @@ export default class CompletionProvider implements vscode.CompletionItemProvider
         }
         // Check whether the user is closing an open xml element, by typing the > character.
         // If yes suggest the closing xml element
-        else if (XmlHelper.IsEndOfElement(document, position) || XmlHelper.IsStartOfClosingElement(document, position)) {
+        else if (!this.xmlExtensionInstalledAndActive && (XmlHelper.IsEndOfElement(document, position) || XmlHelper.IsStartOfClosingElement(document, position))) {
             let xPath = XmlHelper.GetXPath(document, position);
 
             if (xPath.length >= 1) {
@@ -63,7 +80,7 @@ export default class CompletionProvider implements vscode.CompletionItemProvider
 
         // Check whether the user is opening new xml element, by typing < or </.
         // If yes suggest the list of children and closing xml element 
-        else if (XmlHelper.IsStartOfOpeningElement(document, position)) {
+        else if ((!this.xmlExtensionInstalledAndActive && XmlHelper.IsStartOfOpeningElement(document, position))) {
             let xPath = XmlHelper.GetXPath(document, position);
             let elements: Suggestion[] = XsdHelper.GetSubElements(xPath);
 
@@ -144,9 +161,14 @@ export default class CompletionProvider implements vscode.CompletionItemProvider
                 list = ['{Culture:LanguageName}', '{Culture:LCID}', '{Culture:RegionName}', '{Culture:RFC5646}',
                     '{Policy:PolicyId}', '{Policy:RelyingPartyTenantId}', '{Policy:TenantObjectId}',
                     '{Policy:TrustFrameworkTenantId}', '{OIDC:AuthenticationContextReferences}', '{OIDC:ClientId}',
-                    '{OIDC:DomainHint}', '{OIDC:LoginHint}', '{OIDC:MaxAge}', '{OIDC:Nonce}', '{OIDC:Prompt}', '{OIDC:Resource}',
-                    '{OIDC:scope}', '{Context:BuildNumber}', '{Context:CorrelationId}', '{Context:DateTimeInUtc}', '{Context:DeploymentMode}',
-                    '{Context:IPAddress}', '{OAUTH-KV:campaignId}', '{OAUTH-KV:app_session}', '{oauth2:access_token}'];
+                    '{OIDC:DomainHint}', '{OIDC:LoginHint}', '{OIDC:MaxAge}', '{OIDC:Nonce}', '{OIDC:Password}',
+                    '{OIDC:Username}', '{OIDC:Prompt}', '{OIDC:RedirectUri}', '{OIDC:Resource}',
+                    '{OIDC:scope}', '{Context:BuildNumber}', '{Context:CorrelationId}', '{Context:DateTimeInUtc}',
+                    '{Context:DeploymentMode}', '{Context:HostName}', '{Context:KMSI}', '{Claim:replace-to-your-claim-type}',
+                    '{Context:IPAddress}', '{OAUTH-KV:campaignId}', '{OAUTH-KV:replace-with-your-key}', '{oauth2:access_token}',
+                    '{oauth2:refresh_token}',
+                    '{SAML:AuthnContextClassReferences}', '{SAML:NameIdPolicyFormat}', '{SAML:Issuer}', '{SAML:AllowCreate}',
+                    '{SAML:ForceAuthn}', '{SAML:ProviderName}', '{SAML:RelayState}', '{SAML:Subject}'];
             }
             // Get claims list
             else if (XmlHelper.IsCloseToAttribute("ClaimTypeReferenceId", linePrefix, position)) {
