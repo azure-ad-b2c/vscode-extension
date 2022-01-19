@@ -10,7 +10,7 @@ export default class B2CArtifacts {
 
     static GetB2CArtifacts() {
         var rootPath: string;
-        // Check if a folder is opend
+        // Check if a folder is opened
         if ((!vscode.workspace.workspaceFolders) || (vscode.workspace.workspaceFolders.length == 0)) {
             vscode.window.showWarningMessage("To build a policy you need to open the policy folder in VS code");
             return;
@@ -54,7 +54,7 @@ export default class B2CArtifacts {
                 }
             });
 
-        function getTenantArtifacts(entry: any): Promise<any> {
+        function getTenantArtifacts(entry: any): Promise<void> {
             return new Promise((resolve, reject) => {
                 let tenantId = entry.Tenant;
                 getToken(tenantId)

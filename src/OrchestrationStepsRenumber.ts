@@ -25,7 +25,7 @@ export default class OrchestrationStepsRenumber {
                 OrchestrationStepsRenumber.renumberOrchestrationSteps(xmlDoc, editBuilder, "/ns:TrustFrameworkPolicy/ns:SubJourneys/ns:SubJourney");
             });
 
-        } catch (e) {
+        } catch (e: any) {
             vscode.window.showErrorMessage(e.message);
         }
     }
