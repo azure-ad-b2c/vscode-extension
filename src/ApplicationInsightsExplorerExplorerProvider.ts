@@ -127,13 +127,14 @@ export default class ApplicationInsightsExplorerExplorerProvider implements vsco
 				try {
 					info = JSON.parse(body);
 				}
-				catch (e) {
+				catch (e: any) {
+					
 					try {
 						// I'm unclear why this replace exists, but removing it fixes the unexpected token c error
 						// Instead of immediately going for the replace, try parsing the body as is and then falling back to the replace as a last resort
 						body = body.replace('""', '"')
 						info = JSON.parse(body);
-					} catch (e2) {
+					} catch (e2: any) {
 						console.log(e.message)
 						vscode.window.showErrorMessage(e.message);
 						this.error = "Cannot parse the json data.";
@@ -408,7 +409,7 @@ export default class ApplicationInsightsExplorerExplorerProvider implements vsco
 
 		try {
 			json = JSON.parse(data);
-		} catch (e) {
+		} catch (e: any) {
 			// When this would fail previously, VS Code would silently ignore the error and continue, returning no content
 			// to the user when they tried to view the app insights file
 			console.log("Failed to parse app insights JSON data: " + e.message);
