@@ -18,7 +18,11 @@ param(
 #File Path containing the appsettings.json and the XML policy files
 [Parameter(Mandatory = $true)]
 [string]
-$FilePath
+$FilePath,
+
+[Parameter(Mandatory = $false)]
+[string]
+$Environment
 )
 
 try{
@@ -44,6 +48,11 @@ try{
     #Iterate through environments  
     foreach($entry in $AppSettingsJson.Environments)
     {
+        if ($Environment -and $entry.Name -ne $Environment) {
+          Write-Verbose "Skipping environment: '$($entry.Name)'"
+          continue
+        }
+        
         Write-Verbose "ENVIRONMENT: $($entry.Name)"
 
         if($null -eq $entry.PolicySettings){
