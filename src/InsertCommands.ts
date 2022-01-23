@@ -259,7 +259,7 @@ export default class InsertCommands {
                         "For more information, see: [Azure Active Directory B2C: Collecting Logs](https://docs.microsoft.com/en-us/azure/active-directory-b2c/active-directory-b2c-troubleshoot-custom)")
                 });
         }
-        catch (e) {
+        catch (e: any) {
             console.log(e.message)
         }
 
