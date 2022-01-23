@@ -4548,5 +4548,6 @@ export default class Consts {
 static ADALresource: string ="https://graph.microsoft.com"; 
 static ADALauthURLPrefix="https://login.microsoftonline.com/"; 
 static B2CGraphEndpoint="https://graph.microsoft.com/beta/trustFramework/policies";
+static SamplesYourTenant = "yourtenant.onmicrosoft.com";
 
 }

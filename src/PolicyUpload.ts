@@ -3,10 +3,10 @@ import * as adal from 'adal-node';
 import { window } from 'vscode';
 import * as vscode from 'vscode';
 import Consts from './Consts';
-import { AuthenticationContext } from 'adal-node';
 import Config from './config';
 import * as fs from 'fs';
 import * as async from 'async';
+import MSGraphTokenHelper from './services/MSGraphTokenHelper';
 
 var xpath = require('xpath');
 var DOMParser = require('xmldom').DOMParser;
@@ -27,81 +27,15 @@ export default class PolicyUpload {
 
     private static policyUploadQueue;
 
-    static devcodelogin(tenantId: string, ClientId: string): Thenable<adal.TokenResponse> {
-        var authorityUrl = Consts.ADALauthURLPrefix + tenantId;
-        var resource = 'https://graph.microsoft.com';
-        var context = new AuthenticationContext(authorityUrl);
-
-        return new Promise((resolve, reject) => context.acquireUserCode(resource, ClientId, 'es-mx', function (err, response) {
-            if (err) {
-                console.log('well that didn\'t work: ' + err.message);
-                if (err.message == "Error login in - The clientId parameter is required.") {
-                    vscode.window.showErrorMessage("The Graph API ClientId has not been set in Settings.");
-                }
-                else {
-                    vscode.window.showErrorMessage("Error login in - " + err.message);
-                }
-                reject(err);
-            } else {
-                console.log(response.userCode);
-                var usercode = response.userCode;
-                var ncp = require("copy-paste");
-                ncp.copy(usercode, function () {
-                    // complete...
-                })
-
-                vscode.window.showErrorMessage("Please login with the following code (" + response.userCode + ")", "Login").then(selection => {
-                    if (selection == "Login") {
-                        vscode.commands.executeCommand('vscode.open', vscode.Uri.parse("https://www.microsoft.com/devicelogin"));
-                    }
-                });
-
-                console.log('calling acquire token with device code');
-
-                context.acquireTokenWithDeviceCode(resource, ClientId, response, function (Error, tokenResponse) {
-                    if (err) {
-                        console.log('error happens when acquiring token with device code');
-                        console.log(err);
-
-                        vscode.window.showErrorMessage('An error happens when acquiring token with device code');
-                        reject(err);
-                    }
-                    else {
-                        resolve(tokenResponse as adal.TokenResponse);
-                    }
-                });
-            }
-        }));
-    }
-
-    static acquireToken(tenantId: string): Thenable<adal.TokenResponse> {
-        let clientID = PolicyUpload.getMSGraphClientID();
-        let authURL = Consts.ADALauthURLPrefix + tenantId;
-        let authcontext = new adal.AuthenticationContext(authURL);
-
-        return new Promise((resolve, reject) => {
-            authcontext.acquireToken(Consts.ADALresource, "", clientID, function (err, tokenResponse) {
-                //reauthenticate if the access token is invalid
-                if (err) {
-                    PolicyUpload.devcodelogin(tenantId, clientID)
-                        .then(
-                            tokenResponse => resolve(tokenResponse),
-                            err => reject(err));
-                }
-                else {
-                    resolve(tokenResponse as adal.TokenResponse);
-                }
-            });
-        })
-    }
-
+    // Policy upload entrypoint
     static uploadCurrentPolicy() {
         var PolicyInfo = PolicyUpload.getPolicyInfo();
 
-        this.acquireToken(PolicyInfo.TenantId).then(tokenResponse =>
-            PolicyUpload.uploadPolicy(tokenResponse as adal.TokenResponse, PolicyInfo.PolicyId));
+        MSGraphTokenHelper.acquireToken(PolicyInfo.TenantId)
+            .then(tokenResponse => PolicyUpload.uploadSinglePolicy(tokenResponse as adal.TokenResponse, PolicyInfo));
     }
 
+    // Upload all policies entrypoint
     static async uploadAllPolicies() {
         const targetEnvironment = Config.GetDefaultEnvironment();
 
@@ -133,7 +67,7 @@ export default class PolicyUpload {
         }
 
         //get the access token
-        const tokenResponse = await this.acquireToken(tenantId);
+        const tokenResponse = await MSGraphTokenHelper.acquireToken(tenantId);
 
         //upload policies recursively
         this.policyUploadQueue = [];
@@ -142,7 +76,7 @@ export default class PolicyUpload {
         }
         PolicyUpload.processPolicyUploadQueue();
     }
-
+    
     static processPolicyUploadQueue() {
         if (this.policyUploadQueue.length > 0) {
             async.series(this.policyUploadQueue, (err) => {
@@ -201,7 +135,7 @@ export default class PolicyUpload {
                         }
                     }).write(policy.xmlData);
                 }
-                catch (error) {
+                catch (error: any) {
                     vscode.window.showErrorMessage(error);
                     reject(error);
                     cb(error);
@@ -292,21 +226,11 @@ export default class PolicyUpload {
         return rtnobj;
     }
 
+    // Upload a single policy
+    static async uploadSinglePolicy(tokenResponse: adal.TokenResponse, PolicyInfo: PolicyInfoObj) {
 
-    static getMSGraphClientID() {
-        var config = vscode.workspace.getConfiguration('aadb2c.graph');
-
-        var RtnVal = config.has("clientid");
-        if (!RtnVal) {
-            vscode.window.showErrorMessage("The ClientId setting is not set");
-            return "";
-        }
-        return "" + config.get("clientid");
-    }
-
-    static async uploadPolicy(tokenResponse: adal.TokenResponse, PolicyId: string) {
-        var at = tokenResponse.accessToken;
-        var bearertoken = "Bearer " + at;
+        var bearertoken = "Bearer " + tokenResponse.accessToken;
+        var realTenantName = PolicyInfo.TenantId;
 
         console.log(" upload policy");
 
@@ -315,11 +239,18 @@ export default class PolicyUpload {
         if (editor) {
             let doc = editor.document;
             docContent = doc.getText();
+
+            // Replace the samples yourtenant with the default tenant name
+            if (PolicyInfo.TenantId.toLowerCase().indexOf("yourtenant.onmicrosoft.com") >= 0 && MSGraphTokenHelper.getMSGraphDefaultTenantID() != null)
+            {
+                docContent = docContent.replace(new RegExp("\yourtenant.onmicrosoft.com", "gi"), MSGraphTokenHelper.getMSGraphDefaultTenantID() + ".onmicrosoft.com");
+                realTenantName = MSGraphTokenHelper.getMSGraphDefaultTenantID() + ".onmicrosoft.com";
+            }
         }
 
         var options2 = {
             method: "PUT",
-            url: Consts.B2CGraphEndpoint + "/" + PolicyId + "/$value",
+            url: Consts.B2CGraphEndpoint + "/" + PolicyInfo.PolicyId + "/$value",
             headers: {
                 "Authorization": bearertoken,
                 "Content-Type": "application/xml"
@@ -330,7 +261,7 @@ export default class PolicyUpload {
 
         vscode.window.withProgress({
             location: vscode.ProgressLocation.Notification,
-            title: "Uploading Policy (" + PolicyId + ")...",
+            title: "Uploading Policy (" + PolicyInfo.PolicyId + ")...",
             cancellable: false
         },
             async (progress) => {
@@ -339,8 +270,8 @@ export default class PolicyUpload {
 
         function uploadCallback(error, response) {
             if (!error && response.statusCode == 200) {
-                console.info("Policy " + PolicyId + " successfully uploaded.")
-                vscode.window.showInformationMessage("Policy '" + PolicyId + "' uploaded.");
+                console.info("Policy " + PolicyInfo.PolicyId + " successfully uploaded.")
+                vscode.window.showInformationMessage("Policy '" + PolicyInfo.PolicyId + "' uploaded to '" +  realTenantName + "'.");
             }
             else {
                 const rspbody = response.body;
@@ -350,4 +281,7 @@ export default class PolicyUpload {
             }
         }
     }
+
+
+    
 }
