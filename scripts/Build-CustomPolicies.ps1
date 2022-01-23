@@ -36,8 +36,9 @@ try{
     $XmlPolicyFiles = Get-ChildItem -Path $FilePath -Filter *.xml
     Write-Verbose "Files found: $XmlPolicyFiles"
 
-    #Get the app settings                        
-    $EnvironmentsRootPath = Join-Path $FilePath ($AppSettingsJson.EnvironmentsFolder ?? "Environments")
+    #Get the app settings 
+    $EnvironmentFolder = if ($null -eq $AppSettingsJson.EnvironmentsFolder) { "Environments" } else { $AppSettingsJson.EnvironmentsFolder }
+    $EnvironmentsRootPath = Join-Path $FilePath $EnvironmentFolder
 
     #Ensure environments folder exists
     if((Test-Path -Path $EnvironmentsRootPath -PathType Container) -ne $true)
