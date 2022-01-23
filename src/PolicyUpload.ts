@@ -271,7 +271,17 @@ export default class PolicyUpload {
         function uploadCallback(error, response) {
             if (!error && response.statusCode == 200) {
                 console.info("Policy " + PolicyInfo.PolicyId + " successfully uploaded.")
-                vscode.window.showInformationMessage("Policy '" + PolicyInfo.PolicyId + "' uploaded to '" +  realTenantName + "'.");
+
+                let message = "Policy '" + PolicyInfo.PolicyId + "' uploaded to '" +  realTenantName + "'.";
+                let URL = "";
+
+                if (PolicyUpload.getPreviewURL(PolicyInfo.PolicyId))
+                {
+                    URL = " Click [here](" + PolicyUpload.getPreviewURL(PolicyInfo.PolicyId) + ") to run the policy."
+                }
+
+                vscode.window.showInformationMessage(message + URL);
+
             }
             else {
                 const rspbody = response.body;
@@ -283,5 +293,14 @@ export default class PolicyUpload {
     }
 
 
-    
+    static getPreviewURL(PolicyId: string) {
+        var config = vscode.workspace.getConfiguration('aadb2c');
+
+        var RtnVal = config.has("previewUrl");
+        if (!RtnVal) {
+            return "";
+        }
+
+        return ("" + config.get("previewUrl")).replace("{policy}", PolicyId);
+    }
 }
