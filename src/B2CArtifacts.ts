@@ -4,7 +4,7 @@ import * as vscode from 'vscode';
 import Consts from './Consts';
 import path = require('path');
 import {AuthenticationContext} from 'adal-node';
-import PolicyUpload from './PolicyUpload';
+import MSGraphTokenHelper from './services/MSGraphTokenHelper';
 
 export default class B2CArtifacts {
 
@@ -82,7 +82,7 @@ export default class B2CArtifacts {
         }
 
         function getToken(tenantId: string): Promise<string> {
-            var clientId = PolicyUpload.getMSGraphClientID();
+            var clientId = MSGraphTokenHelper.getMSGraphClientID();
             var authorityUrl = Consts.ADALauthURLPrefix + tenantId;
             var resource = 'https://graph.microsoft.com';
             var context = new AuthenticationContext(authorityUrl);
@@ -132,7 +132,7 @@ export default class B2CArtifacts {
 
         function deviceLogin(tenantId: string): Promise<string> {
             return new Promise((resolve, reject) => {
-                var clientId = PolicyUpload.getMSGraphClientID();
+                var clientId = MSGraphTokenHelper.getMSGraphClientID();
                 var authorityUrl = Consts.ADALauthURLPrefix + tenantId;
                 var resource = 'https://graph.microsoft.com';
                 var context = new AuthenticationContext(authorityUrl);

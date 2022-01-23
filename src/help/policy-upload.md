@@ -25,11 +25,11 @@ In the **Graph: ClientId**, set the value of the application ID you created earl
 
 ![vscode-settings-msgraph.png](media/vscode-settings-msgraph.png)
 
-## Upload a policy
+## Upload a single policy
 
-To upload a policy
+To upload the current policy you are working on:
 
-- `CTRL` + `SHIFT + P`
+- `CTRL` + `SHIFT + U`
 - Type **B2C Upload Policy**
 - You will then see the following. Click Login to launch the browser for Device code login
 
@@ -41,6 +41,15 @@ To upload a policy
 
 - Sign-in with your Azure AD B2C tenant admin account
 
+
+### Policy preview
+
+When you upload a single policy you can run the policy with a URL you reconfigure in the `aadb2c.previewUrl` settings key.
+
+### Replace the 'yourtenant' with your tenant name
+
+When you upload a single policy you can configure the Azure AD B2C extension to replace the 'yourtenant' tenant name that comes with the B2C samples with your tenant name. To change the settings, configure the `aadb2c.graph.replaceSamplesYourTenantWit` settings key.
+
 ## Upload all policies for an environment
 
 The default environment name in the extension's settings needs to be configured before using 'Upload all policies' command. if this is not set then the extension will upload policies from the root working folder. Before uploading a specific environment run **B2C Policy Build** command.
@@ -50,3 +59,5 @@ The same process for logging in to Azure should be followed (refer to the "Uploa
 To initiate the upload press `ALT`+`SHIFT`+`U` or launch the **B2C Upload all policies** command in the commands list (`CTRL`+`SHIFT`+`P`).
 
 Once all policies are successfully uploaded a popup will display a success message stating the number of policies uploaded. An error message will be displayed for all failed uploads. If any of the policies have failed to upload the whole job will terminate immediately and an error message will be displayed.
+
+

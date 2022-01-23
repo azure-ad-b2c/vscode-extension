@@ -247,6 +247,16 @@
                     "default": "",
                     "description": "The B2C Upload ApplicationID"
                 },
+                "aadb2c.graph.replaceSamplesYourTenantWith": {
+                    "type": "string",
+                    "default": "",
+                    "description": "Replace the Azure AD B2C community samples `yourtenant` with your tenant name. The tenant name without the `.onmicrosoft.com`, such as `contoso`."
+                },
+                "aadb2c.previewUrl": {
+                    "type": "string",
+                    "default": "",
+                    "description": "The policy preview URL. Use {policy} as a place holder for the policy name. For example, https://yourtenant.b2clogin.com/yourtenant.onmicrosoft.com/{policy}/oauth2/v2.0/authorize?client_id=00000000-0000-0000-0000-000000000000&nonce=defaultNonce&redirect_uri=https%3A%2F%2Fjwt.ms&scope=openid&response_type=id_token&prompt=login"
+                },
                 "aadb2c.maxPolicyRenumberDepth": {
                     "type": "integer",
                     "default": 15,
