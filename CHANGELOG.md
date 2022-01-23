@@ -1,5 +1,11 @@
 # Change Log
 
+## January 2022
+
+- Policy upload with preview. When you upload a single policy you can run the policy with a URL you reconfigure in the `aadb2c.previewUrl` setting.
+- Auto-replace the 'yourtenant' with your tenant name. When you upload a single policy you can configure the Azure AD B2C extension to replace the 'yourtenant' tenant name that comes with the B2C samples with your tenant name. To change the settings, configure the `aadb2c.graph.replaceSamplesYourTenantWit` setting key.
+
+
 ## August 2021
 
 - Check if the [XML](https://marketplace.visualstudio.com/items?itemName=redhat.vscode-xml), or the [XML Tools
