@@ -8,28 +8,6 @@ const _selector = require('xpath').useNamespaces({ "ns": "http://schemas.microso
 
 export default class OrchestrationStepsRenumber {
 
-    // Renumber a single policy document (using the editor)
-    static RenumberPolicyDocument(): any {
-        try {
-            var editor: vscode.TextEditor = vscode.window.activeTextEditor as vscode.TextEditor;
-
-            if (!editor) {
-                vscode.window.showErrorMessage("No document is open");
-                return;
-            }
-
-            var xmlDoc = new DOMParser().parseFromString(editor.document.getText(), "application/xml");
-
-            editor.edit((editBuilder) => {
-                OrchestrationStepsRenumber.renumberOrchestrationSteps(xmlDoc, editBuilder, "/ns:TrustFrameworkPolicy/ns:UserJourneys/ns:UserJourney");
-                OrchestrationStepsRenumber.renumberOrchestrationSteps(xmlDoc, editBuilder, "/ns:TrustFrameworkPolicy/ns:SubJourneys/ns:SubJourney");
-            });
-
-        } catch (e: any) {
-            vscode.window.showErrorMessage(e.message);
-        }
-    }
-
     // Renumber multiple policies (using the file system)
     static RenumberPolicies(files): any {
         let policies: Map<string, Policy> = new Map();
@@ -49,9 +27,9 @@ export default class OrchestrationStepsRenumber {
 
         // Iterate over all the policies to determine if they have a base file
         for (let policy of policies.values()) {
-            let base = policy.selector("string(/ns:TrustFrameworkPolicy/ns:BasePolicy/ns:PolicyId)");
-            if (base && policies.has(base)) {
-                policy.base = policies.get(base);
+            let basePolicy = policy.selector("string(/ns:TrustFrameworkPolicy/ns:BasePolicy/ns:PolicyId)");
+            if (basePolicy && policies.has(basePolicy)) {
+                policy.basePolicy = policies.get(basePolicy);
             }
         }
 
@@ -59,53 +37,12 @@ export default class OrchestrationStepsRenumber {
             policy.process();
         }
     }
-
-    // Renumber documents' user journeys, or sub journeys
-    private static renumberOrchestrationSteps(xmlDoc, editBuilder, parentElement): any {
-        let journeys = _selector(parentElement, xmlDoc);
-        if (journeys.length === 0) {
-            vscode.window.showInformationMessage("No journeys to renumber");
-        }
-
-        for (let journey of journeys) {
-            let steps = _selector("./ns:OrchestrationSteps/ns:OrchestrationStep", journey);
-            if (steps.length === 0) {
-                vscode.window.showInformationMessage("No steps to renumber");
-                continue;
-            }
-
-            for (let i = 0; i < steps.length; i++) {
-                let orderAttr;
-                for (let j = 0; j < steps[i].attributes.length; j++) {
-                    if (steps[i].attributes[j].name === "Order") {
-                        orderAttr = steps[i].attributes[j];
-                        break;
-                    }
-                }
-                if (!orderAttr) {
-                    vscode.window.showWarningMessage(`Step ${i} missing order attribute. Will not be renumbered!`);
-                    continue;
-                }
-
-                let start = new vscode.Position(orderAttr.lineNumber - 1, orderAttr.columnNumber);
-                let end = new vscode.Position(orderAttr.lineNumber - 1, orderAttr.columnNumber + orderAttr.nodeValue.length);
-
-                let range = new vscode.Range(start, end);
-
-                editBuilder.replace(range, (i + 1).toString());
-            }
-        }
-
-
-        vscode.window.showInformationMessage("Steps renumbered successfully");
-    }
-
 }
 
 class Policy {
     xml: Document;
     file: PolicyFile;
-    base: Policy | undefined;
+    basePolicy: Policy | undefined;
     processed: boolean;
     splitFile: string[];
     policyId: string;
@@ -126,7 +63,7 @@ class Policy {
     }
 
     hasPolicyId(policyId): boolean {
-        if (this.journeys.has(policyId)) {
+        if (this.basePolicy.journeys.has(policyId)) {
             return true;
         }
 
@@ -134,7 +71,7 @@ class Policy {
         let config = vscode.workspace.getConfiguration("aadb2c");
         let maxDepth = Number(config.get("maxPolicyRenumberDepth", 15));
         let currentDepth = 0;
-        let currentBase: Policy = this.base;
+        let currentBase: Policy = this.basePolicy;
 
         // Semi-recursively iterates over the base policies to determine if they have the given policyId
         while (currentBase !== null && currentDepth++ < maxDepth) {
@@ -145,7 +82,7 @@ class Policy {
 
             // Add the current base to the seen bases, and advance to the next one
             seenBases.add(currentBase.policyId);
-            currentBase = currentBase.base;
+            currentBase = currentBase.basePolicy;
 
             if (currentBase == null || seenBases.has(currentBase.policyId)) {
                 // Either there is no base for the previous base, or we've hit a cycle
@@ -163,9 +100,9 @@ class Policy {
         if (this.processed) {
             return;
         }
-        if (this.base && !this.base.processed) {
-            this.base.process();
-            this.base.journeys.forEach(j => this.journeys.add(j));
+        if (this.basePolicy && !this.basePolicy.processed) {
+            this.basePolicy.process();
+            this.basePolicy.journeys.forEach(j => this.journeys.add(j));
         }
         this.processed = true;
         let journeys = this.selector("/ns:TrustFrameworkPolicy/ns:UserJourneys/ns:UserJourney");
@@ -175,7 +112,7 @@ class Policy {
         for (let journey of journeys) {
             let journeyId = _selector("string(./@Id)", journey);
             this.journeys.add(journeyId);
-            if (this.base && this.base.hasPolicyId(journeyId)) {
+            if (this.basePolicy && this.basePolicy.hasPolicyId(journeyId)) {
                 vscode.window.showInformationMessage(`Skipped renumbering ${this.policyId} because it has a base journey in another file`);
                 continue; // We won't renumber anything which has the journey defined in its base because
                 // it's impossible to know what the programmer intends

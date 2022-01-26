@@ -2,7 +2,7 @@ import * as vscode from 'vscode';
 import fs = require('fs');
 import path = require('path');
 import Consts from './Consts';
-import OrchestrationStepsRenumber from './OrchestrationStepsRenumber';
+import RenumberStepsMultiplePolicies from './RenumberStepsMultiplePolicies';
 
 export default class PolicBuild {
     static Build() {
@@ -67,7 +67,7 @@ export default class PolicBuild {
                             // Automatically renumber orchestration steps if they are out of order
                             let config = vscode.workspace.getConfiguration('aadb2c');
                             if (config.autoRenumber) {
-                                OrchestrationStepsRenumber.RenumberPolicies(policyFiles);
+                                RenumberStepsMultiplePolicies.RenumberPolicies(policyFiles);
                             }
 
                             // Get the app settings
@@ -104,12 +104,12 @@ export default class PolicBuild {
 
                                             // Replace the file name
                                             policContent = policContent.replace(new RegExp("\{Settings:Filename\}", "gi"), file.FileName.replace(/\.[^/.]+$/, ""));
-                                            
+
                                             // Replace the file name and remove the policy prefix
-                                            policContent = policContent.replace(new RegExp("\{Settings:PolicyFilename\}", "gi"), file.FileName.replace(/\.[^/.]+$/, "").replace(new RegExp("B2C_1A_",  "g"), ""),  );
-                                            
+                                            policContent = policContent.replace(new RegExp("\{Settings:PolicyFilename\}", "gi"), file.FileName.replace(/\.[^/.]+$/, "").replace(new RegExp("B2C_1A_", "g"), ""),);
+
                                             // Replace the environment name
-                                            policContent = policContent.replace(new RegExp("\{Settings:Environment\}", "gi"), entry.Name );
+                                            policContent = policContent.replace(new RegExp("\{Settings:Environment\}", "gi"), entry.Name);
 
                                             // Replace the rest of the policy settings
                                             Object.keys(entry.PolicySettings).forEach(key => {
