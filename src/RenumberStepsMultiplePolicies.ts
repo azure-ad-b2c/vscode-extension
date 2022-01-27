@@ -63,35 +63,40 @@ class Policy {
     }
 
     hasPolicyId(policyId): boolean {
-        if (this.basePolicy.journeys.has(policyId)) {
-            return true;
-        }
 
-        let seenBases = new Set();
-        let config = vscode.workspace.getConfiguration("aadb2c");
-        let maxDepth = Number(config.get("maxPolicyRenumberDepth", 15));
-        let currentDepth = 0;
-        let currentBase: Policy = this.basePolicy;
-
-        // Semi-recursively iterates over the base policies to determine if they have the given policyId
-        while (currentBase !== null && currentDepth++ < maxDepth) {
-            // If the current base has the policy, we can return true
-            if (currentBase.journeys.has(policyId)) {
+        try {
+            if (this.journeys.has(policyId)) {
                 return true;
             }
 
-            // Add the current base to the seen bases, and advance to the next one
-            seenBases.add(currentBase.policyId);
-            currentBase = currentBase.basePolicy;
+            let seenBases = new Set();
+            let config = vscode.workspace.getConfiguration("aadb2c");
+            let maxDepth = Number(config.get("maxPolicyRenumberDepth", 15));
+            let currentDepth = 0;
+            let currentBase: Policy = this.basePolicy;
 
-            if (currentBase == null || seenBases.has(currentBase.policyId)) {
-                // Either there is no base for the previous base, or we've hit a cycle
-                // Hitting a cycle shouldn't technically be possible, but protect against it anyway as there's
-                // nothing that would prevent people from writing an invalid policy
-                return false;
+            // Semi-recursively iterates over the base policies to determine if they have the given policyId
+            while ((currentBase !== null && currentBase !== undefined) && currentDepth++ < maxDepth) {
+                // If the current base has the policy, we can return true
+                if (currentBase.journeys.has(policyId)) {
+                    return true;
+                }
+
+                // Add the current base to the seen bases, and advance to the next one
+                seenBases.add(currentBase.policyId);
+                currentBase = currentBase.basePolicy;
+
+                if (currentBase === null || currentBase === undefined || seenBases.has(currentBase.policyId)) {
+                    // Either there is no base for the previous base, or we've hit a cycle
+                    // Hitting a cycle shouldn't technically be possible, but protect against it anyway as there's
+                    // nothing that would prevent people from writing an invalid policy
+                    return false;
+                }
             }
         }
-
+        catch (error: any) {
+            vscode.window.showErrorMessage(error.message);
+        }
         // In the event we didn't find the policyId in the base policies, return false
         return false;
     }
