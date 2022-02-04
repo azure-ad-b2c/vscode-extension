@@ -90,7 +90,10 @@ export function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(vscode.commands.registerCommand('ApplicationInsightsExplorer.add', () => InsertCommands.InsertApplicationInsights()));
 
     // Policy build
-    context.subscriptions.push(vscode.commands.registerCommand('extension.policy.build', () => PolicyBuild.Build()));
+    context.subscriptions.push(vscode.commands.registerCommand('extension.policy.build', () => PolicyBuild.Build({singlePolicy: false})));
+    
+    // Policy build
+    context.subscriptions.push(vscode.commands.registerCommand('extension.policy.buildSingle', () => PolicyBuild.Build({singlePolicy: true})));
 
     // Smart copy
     context.subscriptions.push(vscode.commands.registerCommand('extension.policy.smartCopy', () => SmartCopy.Copy()));

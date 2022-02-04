@@ -42,7 +42,11 @@
             },
             {
                 "command": "extension.policy.build",
-                "title": "B2C Policy build"
+                "title": "B2C Build all policies"
+            },
+            {
+                "command": "extension.policy.buildSingle",
+                "title": "B2C Build current policy"
             },
             {
                 "command": "extension.policy.smartCopy",
@@ -122,6 +126,12 @@
                 "command": "extension.policy.build",
                 "key": "shift+ctrl+5",
                 "mac": "shift+cmd+5",
+                "when": "editorTextFocus"
+            },
+            {
+                "command": "extension.policy.buildSingle",
+                "key": "shift+ctrl+6",
+                "mac": "shift+cmd+6",
                 "when": "editorTextFocus"
             },
             {
