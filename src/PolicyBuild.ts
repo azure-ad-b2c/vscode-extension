@@ -8,6 +8,7 @@ export default class PolicBuild {
     static Build({singlePolicy = false} = {}) {
 
         var policyFilter: string = "**/*.{xml}";
+        var targetPolicy: string = "";
         if (singlePolicy) {
             var editor: vscode.TextEditor = vscode.window.activeTextEditor as vscode.TextEditor;
 
@@ -21,7 +22,8 @@ export default class PolicBuild {
                 return;
             }
 
-            policyFilter = path.basename(editor.document.fileName);
+            targetPolicy = path.basename(editor.document.fileName);
+            policyFilter = "**/" + targetPolicy;
         }
 
         var rootPath: string;
@@ -170,7 +172,7 @@ export default class PolicBuild {
 
                             if (hasBuiltAnyPolicies) {
                                 if (singlePolicy) {
-                                    vscode.window.showInformationMessage(`Your policy ${policyFilter} successfully exported and stored under the Environment folder.`);
+                                    vscode.window.showInformationMessage(`Your policy ${targetPolicy} successfully exported and stored under the Environment folder.`);
                                 } else {
                                     vscode.window.showInformationMessage("Your policies successfully exported and stored under the Environment folder.");
                                 }
