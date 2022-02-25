@@ -115,7 +115,10 @@ export function activate(context: vscode.ExtensionContext) {
 
     // Execute build on save
     vscode.workspace.onDidSaveTextDocument((document: vscode.TextDocument) => {
-        vscode.commands.executeCommand('extension.policy.build');
+        const autoBuild = vscode.workspace.getConfiguration('aadb2c').autoBuild;
+
+        if (autoBuild)
+            vscode.commands.executeCommand('extension.policy.build');
     });
 
     // Load IEF schema

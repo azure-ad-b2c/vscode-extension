@@ -277,6 +277,11 @@
                     "default": true,
                     "description": "Automatically renumber out of order orchestration steps when building"
                 },
+                "aadb2c.autoBuild": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Automatically build polices when file is saved"
+                },
                 "environment.default": {
                     "type": "string",
                     "default": "",
