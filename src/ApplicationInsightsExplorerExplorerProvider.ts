@@ -108,7 +108,7 @@ export default class ApplicationInsightsExplorerExplorerProvider implements vsco
 			+ '/events/traces?timespan=' + timespan + "PT" + config.duration + 'H'
 			+ "&$filter=startswith(customDimensions/EventName, 'Journey Recorder')"
 			+ '&$top=' + config.maxRows
-			+ '&$orderby=timestamp desc&$select=id,timestamp,cloud/roleInstance,trace/message,customDimensions'
+			+ '&$orderby=timestamp desc,id&$select=id,timestamp,cloud/roleInstance,trace/message,customDimensions'
 
 		// Prepare the Application insights call
 		var options = {
@@ -179,22 +179,32 @@ export default class ApplicationInsightsExplorerExplorerProvider implements vsco
 
 						// Set the first line as a continuation
 						this.AppInsightsItems[i].Continuation = true;
-						this.AppInsightsItems[i].Id += ", " + this.AppInsightsItems[i + 1].Id + " (The report shows a combination of two Application Insight entities)";
+						this.AppInsightsItems[i].Id += ", " + this.AppInsightsItems[i + 1].Id;
 
 						// Check if the first entity is the first one, or the continuation
 						if (this.AppInsightsItems[i].Data.startsWith("[")) {
 							this.AppInsightsItems[i].Data = this.AppInsightsItems[i].Data + this.AppInsightsItems[i + 1].Data;
+							// Set the orchestration steps
+							this.AppInsightsItems[i + 1].OrchestrationStep.replace("Step ", "").split(",").forEach(element => {
+								if (this.AppInsightsItems[i].OrchestrationStep.indexOf(element + ",") < 1) {
+									this.AppInsightsItems[i].OrchestrationStep += ", " + element
+								}
+							});							
 						}
 						else {
 							this.AppInsightsItems[i].Data = this.AppInsightsItems[i + 1].Data + this.AppInsightsItems[i].Data
+							// Set the orchestration steps
+							this.AppInsightsItems[i].OrchestrationStep.replace("Step ", "").split(",").forEach(element => {
+								if (this.AppInsightsItems[i + 1].OrchestrationStep.indexOf(element + ",") < 1) {
+									this.AppInsightsItems[i + 1].OrchestrationStep += ", " + element
+								}
+							});							
 						}
 
-						// Set the orchestration steps
-						this.AppInsightsItems[i + 1].OrchestrationStep.replace("Step ", "").split(",").forEach(element => {
-							if (this.AppInsightsItems[i].OrchestrationStep.indexOf(element + ",") < 1) {
-								this.AppInsightsItems[i].OrchestrationStep += ", " + element
-							}
-						});
+						// Only add combination text if combined the last entry together
+                        if (this.AppInsightsItems[i].Data.endsWith("]")) {
+                            this.AppInsightsItems[i].Id += " (The report shows a combination of two Application Insight entities)";
+                        }						
 
 						if (this.AppInsightsItems[i].OrchestrationStep.length > 0 &&
 							(!this.AppInsightsItems[i].OrchestrationStep.startsWith("Step")))
@@ -202,6 +212,9 @@ export default class ApplicationInsightsExplorerExplorerProvider implements vsco
 
 						// Remove the second entity 
 						this.AppInsightsItems.splice(i + 1, 1);
+
+						// More than 2 entities sometimes need to be combined, after joining two together we need to go back 1 step in the loop and check again
+						i--;
 					}
 				}
 
