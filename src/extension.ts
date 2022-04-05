@@ -90,10 +90,10 @@ export function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(vscode.commands.registerCommand('ApplicationInsightsExplorer.add', () => InsertCommands.InsertApplicationInsights()));
 
     // Policy build
-    context.subscriptions.push(vscode.commands.registerCommand('extension.policy.build', () => PolicyBuild.Build({singlePolicy: false})));
-    
+    context.subscriptions.push(vscode.commands.registerCommand('extension.policy.build', () => PolicyBuild.Build({ singlePolicy: false })));
+
     // Policy build
-    context.subscriptions.push(vscode.commands.registerCommand('extension.policy.buildSingle', () => PolicyBuild.Build({singlePolicy: true})));
+    context.subscriptions.push(vscode.commands.registerCommand('extension.policy.buildSingle', () => PolicyBuild.Build({ singlePolicy: true })));
 
     // Smart copy
     context.subscriptions.push(vscode.commands.registerCommand('extension.policy.smartCopy', () => SmartCopy.Copy()));
@@ -112,6 +112,14 @@ export function activate(context: vscode.ExtensionContext) {
 
     // Update appSettings with IEF appIds and B2C extension app id and object id
     context.subscriptions.push(vscode.commands.registerCommand('extension.settings.b2cArtifacts', () => B2CArtifacts.GetB2CArtifacts()));
+
+    // Execute build on save
+    vscode.workspace.onDidSaveTextDocument((document: vscode.TextDocument) => {
+        const autoBuild = vscode.workspace.getConfiguration('aadb2c').autoBuild;
+
+        if (autoBuild)
+            vscode.commands.executeCommand('extension.policy.build');
+    });
 
     // Load IEF schema
     XsdHelper.getIefSchema();
