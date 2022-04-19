@@ -4544,10 +4544,22 @@ export default class Consts {
     `;
 
 
+/** enable switch between global and China uris */
+if (aadb2c.region='global') 
+{
+  static ADALresource: string ="https://graph.microsoft.com"; 
+  static ADALauthURLPrefix="https://login.microsoftonline.com/";
+  static ADALauthURLDeviceLogin="https://device.login.microsoftonline.com/";
+  static B2CGraphEndpoint="https://graph.microsoft.com/beta/trustFramework/policies"; 
+  static SamplesYourTenant ="yourtenant.onmicrosoft.com";  
+  static TenantRegion=".onmicrosoft.com" 
+};
 
-static ADALresource: string ="https://graph.microsoft.com"; 
-static ADALauthURLPrefix="https://login.microsoftonline.com/"; 
-static B2CGraphEndpoint="https://graph.microsoft.com/beta/trustFramework/policies";
-static SamplesYourTenant = "yourtenant.onmicrosoft.com";
-
-}
+if (aadb2c.region='china') {
+  static ADALresource: string ="https://microsoftgraph.chinacloudapi.cn"; 
+  static ADALauthURLPrefix="https://login.chinacloudapi.cn/"; 
+  static ADALauthURLDeviceLogin="https://device.login.chinacloudapi.cn/";
+  static B2CGraphEndpoint="https://microsoftgraph.chinacloudapi.cn/beta/trustFramework/policies"; 
+  static SamplesYourTenant ="yourtenant.partner.onmschina.cn";  
+  static TenantRegion=".partner.onmschina.cn"  
+} 

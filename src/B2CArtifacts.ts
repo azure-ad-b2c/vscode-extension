@@ -84,7 +84,7 @@ export default class B2CArtifacts {
         function getToken(tenantId: string): Promise<string> {
             var clientId = MSGraphTokenHelper.getMSGraphClientID();
             var authorityUrl = Consts.ADALauthURLPrefix + tenantId;
-            var resource = 'https://graph.microsoft.com';
+            var resource = Consts.ADALresource;
             var context = new AuthenticationContext(authorityUrl);
             let username = "";            
             return new Promise((resolve, reject) => {
@@ -107,7 +107,7 @@ export default class B2CArtifacts {
                 var request = require('request');
                 // using startsWith because b2c extension app name is very long! being lazy
                 let options = {
-                    url: `https://graph.microsoft.com/beta/applications?$filter=startsWith(displayName,'${appName}')`,
+                    url: Consts.ADALresource+`/beta/applications?$filter=startsWith(displayName,'${appName}')`,
                     headers: {
                         "Authorization": `Bearer ${accessToken}`
                     }
@@ -134,7 +134,7 @@ export default class B2CArtifacts {
             return new Promise((resolve, reject) => {
                 var clientId = MSGraphTokenHelper.getMSGraphClientID();
                 var authorityUrl = Consts.ADALauthURLPrefix + tenantId;
-                var resource = 'https://graph.microsoft.com';
+                var resource = Consts.ADALresource;
                 var context = new AuthenticationContext(authorityUrl);
                 context.acquireUserCode(resource, clientId, 'es-mx', function (err, response) {
                     if (err) {
@@ -155,7 +155,7 @@ export default class B2CArtifacts {
                             .then(selection => {
                                 if(selection == "Login") {
                                     console.log('starting login');
-                                    vscode.commands.executeCommand('vscode.open', vscode.Uri.parse("https://www.microsoft.com/devicelogin"))
+                                    vscode.commands.executeCommand('vscode.open', vscode.Uri.parse(Consts.ADALauthURLDeviceLogin))
                                     .then(() => {
                                         setTimeout(()=> {
                                             console.log('calling acquire token with device code');
