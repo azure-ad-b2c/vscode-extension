@@ -251,11 +251,17 @@
                     "type": "integer",
                     "default": 12,
                     "description": "The duration of events to return (in hours)"
-                },
-                "aadb2c.region":{
-                    "type": "string",
-                    "default": "global",
-                    "description": "Define the region ('global' or 'china') of your tenant"                    
+                },                
+
+                "aadb2c.region": {
+                    "type": "enum",                
+                    "description": "Select your tenant region: 'global' (default) or 'china' ",		
+					"enum": [
+							"global",
+							"china"
+							],
+                    "default": "global"             
+                                      
                 },
                 "aadb2c.graph.clientid": {
                     "type": "string",
@@ -286,7 +292,6 @@
                     "type": "string",
                     "default": "",
                     "description": "Default environment name"
-
                 }
             }
         }

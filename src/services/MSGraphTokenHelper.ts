@@ -56,7 +56,7 @@ export default class MSGraphTokenHelper {
                     else if (err.message.indexOf("AADSTS700016") >= 0)
                         vscode.window.showErrorMessage("Application with identifier '" + ClientId + " ' was not found in the directory '" + tenantId + "'. You may have sent your authentication request to the wrong tenant. Or the application has not been installed by the administrator of the tenant or consented to by any user in the tenant.");
                     else if (err.message.indexOf("AADSTS90002") >= 0) +
-                        vscode.window.showErrorMessage("Tenant '" + tenantId + " ' not found.");
+                        vscode.window.showErrorMessage("Tenant '" + tenantId + " ' not found in "+ Consts.ADALresource +".");
                     else {
                         vscode.window.showErrorMessage(err.message);
                     }
