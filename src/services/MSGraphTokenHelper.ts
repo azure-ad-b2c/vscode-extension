@@ -10,8 +10,8 @@ export default class MSGraphTokenHelper {
         let yourTenantReplaced: string = "";
         // Replace the samples yourtenant with the default tenant name
         if (tenantId.toLowerCase().indexOf(Consts.SamplesYourTenant) >= 0 && MSGraphTokenHelper.getMSGraphDefaultTenantID() != "") {
-            tenantId = tenantId.toLowerCase().replace(Consts.SamplesYourTenant, MSGraphTokenHelper.getMSGraphDefaultTenantID() + ".onmicrosoft.com")
-            yourTenantReplaced = "The policy '" + Consts.SamplesYourTenant + "' tenant name has been replaced with " + MSGraphTokenHelper.getMSGraphDefaultTenantID() + ".onmicrosoft.com.";
+            tenantId = tenantId.toLowerCase().replace(Consts.SamplesYourTenant, MSGraphTokenHelper.getMSGraphDefaultTenantID() + Consts.TenantRegion)
+            yourTenantReplaced = "The policy '" + Consts.SamplesYourTenant + "' tenant name has been replaced with " + MSGraphTokenHelper.getMSGraphDefaultTenantID() + Consts.TenantRegion;
         }
 
         let clientID = MSGraphTokenHelper.getMSGraphClientID();
@@ -36,7 +36,7 @@ export default class MSGraphTokenHelper {
 
     static deviceCodeLogin(tenantId: string, yourTenantReplaced: string, ClientId: string): Thenable<adal.TokenResponse> {
         var authorityUrl = Consts.ADALauthURLPrefix + tenantId;
-        var resource = 'https://graph.microsoft.com';
+        var resource = Consts.ADALresource;
         var context = new AuthenticationContext(authorityUrl);
 
         return new Promise((resolve, reject) => context.acquireUserCode(resource, ClientId, 'es-mx',
@@ -56,7 +56,7 @@ export default class MSGraphTokenHelper {
                     else if (err.message.indexOf("AADSTS700016") >= 0)
                         vscode.window.showErrorMessage("Application with identifier '" + ClientId + " ' was not found in the directory '" + tenantId + "'. You may have sent your authentication request to the wrong tenant. Or the application has not been installed by the administrator of the tenant or consented to by any user in the tenant.");
                     else if (err.message.indexOf("AADSTS90002") >= 0) +
-                        vscode.window.showErrorMessage("Tenant '" + tenantId + " ' not found.");
+                        vscode.window.showErrorMessage("Tenant '" + tenantId + " ' not found in "+ Consts.ADALresource +".");
                     else {
                         vscode.window.showErrorMessage(err.message);
                     }
@@ -71,7 +71,7 @@ export default class MSGraphTokenHelper {
 
                     vscode.window.showErrorMessage("Please login to '" + tenantId + " ' tenant with the following code (" + response.userCode + ")", "Login").then(selection => {
                         if (selection == "Login") {
-                            vscode.commands.executeCommand('vscode.open', vscode.Uri.parse("https://www.microsoft.com/devicelogin"));
+                            vscode.commands.executeCommand('vscode.open', vscode.Uri.parse(Consts.ADALauthURLDeviceLogin));
                         }
                     });
 

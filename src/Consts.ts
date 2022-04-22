@@ -1,6 +1,25 @@
 import { Metadata } from "./models/Metadata";
 import * as vscode from "vscode";
 
+/** default 'global' uris */
+var varADALresource="https://graph.microsoft.com"; 
+var varADALauthURLPrefix="https://login.microsoftonline.com/";
+var varADALauthURLDeviceLogin="https://login.microsoftonline.com/common/oauth2/deviceauth";
+var varB2CGraphEndpoint="https://graph.microsoft.com/beta/trustFramework/policies"; 
+var varSamplesYourTenant ="yourtenant.onmicrosoft.com";  
+var varTenantRegion=".onmicrosoft.com" 
+
+/** enable switch to 'china' uris */
+var config = vscode.workspace.getConfiguration('aadb2c');
+  if (config.get('region') === 'china') {
+    varADALresource= "https://microsoftgraph.chinacloudapi.cn"; 
+    varADALauthURLPrefix="https://login.chinacloudapi.cn/"; 
+    varADALauthURLDeviceLogin="https://login.chinacloudapi.cn/common/oauth2/deviceauth";
+    varB2CGraphEndpoint="https://microsoftgraph.chinacloudapi.cn/beta/trustFramework/policies"; 
+    varSamplesYourTenant ="yourtenant.partner.onmschina.cn";  
+    varTenantRegion=".partner.onmschina.cn"  
+  }
+
 export default class Consts {
   
   static TP_Metadata: Metadata[] = [
@@ -4543,11 +4562,11 @@ export default class Consts {
   
     `;
 
-
-
-static ADALresource: string ="https://graph.microsoft.com"; 
-static ADALauthURLPrefix="https://login.microsoftonline.com/"; 
-static B2CGraphEndpoint="https://graph.microsoft.com/beta/trustFramework/policies";
-static SamplesYourTenant = "yourtenant.onmicrosoft.com";
+  static ADALresource=varADALresource; 
+  static ADALauthURLPrefix=varADALauthURLPrefix;
+  static ADALauthURLDeviceLogin=varADALauthURLDeviceLogin;
+  static B2CGraphEndpoint=varB2CGraphEndpoint; 
+  static SamplesYourTenant=varSamplesYourTenant;  
+  static TenantRegion=varTenantRegion;
 
 }
