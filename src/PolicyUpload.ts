@@ -241,9 +241,9 @@ export default class PolicyUpload {
             docContent = doc.getText();
 
             // Replace the samples yourtenant with the default tenant name
-            if (PolicyInfo.TenantId.toLowerCase().indexOf("yourtenant" +Consts.TenantRegion) >= 0 && MSGraphTokenHelper.getMSGraphDefaultTenantID() != null)
+            if (PolicyInfo.TenantId.toLowerCase().indexOf("yourtenant" + Consts.TenantRegion) >= 0 && MSGraphTokenHelper.getMSGraphDefaultTenantID() != null)
             {
-                docContent = docContent.replace(new RegExp("\yourtenant" +Consts.TenantRegion, "gi"), MSGraphTokenHelper.getMSGraphDefaultTenantID() + Consts.TenantRegion);
+                docContent = docContent.replace(new RegExp("\yourtenant" + Consts.TenantRegion, "gi"), MSGraphTokenHelper.getMSGraphDefaultTenantID() + Consts.TenantRegion);
                 realTenantName = MSGraphTokenHelper.getMSGraphDefaultTenantID() + Consts.TenantRegion;
             }
         }
