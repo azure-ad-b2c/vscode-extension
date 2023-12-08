@@ -3,6 +3,7 @@ import fs = require('fs');
 import path = require('path');
 import Consts from './Consts';
 import RenumberStepsMultiplePolicies from './RenumberStepsMultiplePolicies';
+import DebuggingAttributes from "./RemoveDebuggingMultiplePolicies";
 
 export default class PolicBuild {
     static Build({singlePolicy = false} = {}) {
@@ -80,7 +81,7 @@ export default class PolicBuild {
 
                             // Converted to await because the progress report doesn't work properly otherwise
                             var uris = await vscode.workspace.findFiles(new vscode.RelativePattern(vscode.workspace.rootPath as string, policyFilter), `**/${environmentFolder}/**`);
-                            
+
                             let policyFiles: PolicyFile[] = [];
                             uris.forEach((uri) => {
                                 if (uri.fsPath.indexOf("?") <= 0) {
@@ -106,7 +107,7 @@ export default class PolicBuild {
                                 fs.mkdirSync(environmentsRootPath);
                             }
 
-                            // Iterate through environments  
+                            // Iterate through environments
                             appSettings.Environments.forEach(function (entry) {
 
                                 if (entry.PolicySettings == null) {
@@ -114,6 +115,11 @@ export default class PolicBuild {
                                 }
                                 else {
                                     var environmentRootPath = path.join(environmentsRootPath, entry.Name);
+
+                                    if (config.autoRemoveDebuggingAttributesOnProductionBuild && entry.Production) {
+                                        progress.report({message: "Removing debugging attributes from policies"});
+                                        DebuggingAttributes.Remove(policyFiles);
+                                    }
 
                                     // Ensure environment folder exists
                                     if (!fs.existsSync(environmentRootPath)) {
@@ -249,4 +255,4 @@ export class PolicyFile {
         return subFolder;
     }
 
-} 
+}
