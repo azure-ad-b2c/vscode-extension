@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import * as fs from 'fs';
 import * as path from 'path';
-import { DOMParser, Document } from 'xmldom';
+import { DOMParser } from 'xmldom';
 import { PolicyFile } from './PolicyBuild';
 
 const _selector = require('xpath').useNamespaces({ "ns": "http://schemas.microsoft.com/online/cpim/schemas/2013/06" });
